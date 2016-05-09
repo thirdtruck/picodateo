@@ -44,32 +44,29 @@ avatars = {
   }
 }
 
-script_start = {
-  text = "welcome to picodateo",
-  options = {
-    {
-      text = "new game",
-      script = {
-        text = "hello, new user",
+scenes = {
+  first_choice = {
+    type = "narration",
+    text = "you made the first choice",
+    go_to = "script_start"
+  },
+  second_choice = {
+    type = "narration",
+    text = "you made the second choice",
+    go_to = "script_start"
+  },
+  script_start = {
+    type = "narration",
+    text = "welcome to picodateo",
+    next = {
+      type = "speech",
+      speaker = "robo",
+      text = "how are you today?",
+      next = {
+        type = "choice",
         options = {
-          {
-            text = "first option",
-            script = {
-              text = "you've chosen the first option",
-              options = {
-                { text = "third option" }
-              }
-            }
-          },
-          {
-            text = "second option",
-            script = {
-              text = "you've chosen the second option",
-              options = {
-                { text = "fourth option" }
-              }
-            }
-          }
+          { text = "first choice", go_to = "first_choice" },
+          { text = "second choice", go_to = "second_choice" }
         }
       }
     }
@@ -77,8 +74,9 @@ script_start = {
 }
 
 function _init()
-  choice = 1
-  current_script = script_start
+  current_option = 1
+  current_script = scenes.script_start
+  current_command = scenes.script_start
   current_avatar = avatars.dateo_robo
   current_hands = {
     left = {
@@ -95,19 +93,30 @@ function _init()
 end
 
 function script_update(script)
-  if (btnp(key.up)) choice -= 1
-  if (btnp(key.down)) choice += 1
+  if (current_command.type == "choice") then
+    if (btnp(key.up)) current_option -= 1
+    if (btnp(key.down)) current_option += 1
 
-  -- wrap around
-  if (choice > #(script.options)) then
-    choice = 1
-  elseif (choice < 1) then
-    choice = #(script.options)
-  end
+    -- wrap around
+    if (current_option > #(current_command.options)) then
+      current_option = 1
+    elseif (current_option < 1) then
+      current_option = #(current_command.options)
+    end
 
-  if (btnp(key.a)) then
-    current_script = script.options[choice].script
-    choice = 1
+    if (btnp(key.a)) then
+      current_command = scenes[current_command.options[current_option].go_to]
+      current_option = 1
+    end
+  else
+    if (btnp(key.a)) then
+      if (current_command.go_to) then
+        current_command = scenes[current_command.go_to]
+      else
+        current_command = current_command.next
+      end
+      current_option = 1
+    end
   end
 end
 
@@ -128,16 +137,19 @@ function draw_script(script)
   color(7)
 
   print("", menu_x, menu_y, menu_col)
-  print(script.text)
-  print("")
 
-  if(script.options ~= nil) then
-    i = 1
-    while i <= #(script.options) do
-      if i == choice then
-        print("* "..script.options[i].text)
+  if(current_command.type == "narration") then
+    print(current_command.text)
+  elseif(current_command.type == "speech") then
+    print(current_command.speaker..": "..current_command.text)
+  elseif(current_command.type == "choice") then
+    local i = 1
+    while i <= #(current_command.options) do
+      local option = current_command.options[i]
+      if i == current_option then
+        print("> "..option.text)
       else
-        print("  "..script.options[i].text)
+        print("  "..option.text)
       end
       i += 1
     end
