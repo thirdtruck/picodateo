@@ -1,0 +1,21 @@
+scene: init
+  [] welcome to picodateo
+  [] we hope you enjoy your stay
+  choice:
+    option(new_game): new game
+
+scene: new_game
+  [robo] hello, new user
+  choice:
+    option(first_option): first option
+    option(second_option): second option
+
+scene: first_option
+  [robo] you've chosen the first option
+  choice:
+    option(new_game): go back
+
+scene: second_option
+  [robo] you've chosen the second option
+  choice:
+    option(new_game): go back
