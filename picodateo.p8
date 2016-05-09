@@ -21,45 +21,46 @@ function not_implemented()
   printh "Not implemented"
 end
 
-start_menu = {}
-start_menu.index = 1
-start_menu.options = {
-  "new",
-  "load",
-  "settings"
-}
-start_menu.functions = {
-  not_implemented,
-  not_implemented,
-  function () go_to_menu(settings_menu) end
-}
-
-settings_menu = {}
-settings_menu.index = 2
-settings_menu.options = {
-  "back"
-}
-settings_menu.functions = {
-  function () go_to_menu(start_menu) end
-}
-
-menus = {}
-menus[1] = start_menu
-menus[2] = settings_menu
-
 menu_x = 0
 menu_y = 40
 menu_col = 7
 
+script_start = {
+  text = "Welcome to picodateo",
+  options = {
+    {
+      text = "New Game",
+      script = {
+        text = "Hello, new user",
+        options = {
+          {
+            text = "First option",
+            script = {
+              text = "You've chosen the first option",
+              options = {
+                { text = "Third option" }
+              }
+            }
+          },
+          {
+            text = "Second option",
+            script = {
+              text = "You've chosen the second option",
+              options = {
+                { text = "Fourth option" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 function _init()
   scanline_index = 0
-  go_to_menu(start_menu)
-end
-
-function go_to_menu(new_menu)
-  menu = menus[new_menu.index]
-  menu_index = new_menu.index
   choice = 1
+  current_script = script_start
 end
 
 function scanline_update()
@@ -67,41 +68,46 @@ function scanline_update()
   if (scanline_index > screen.height) then scanline_index = 0 end
 end
 
-function menu_update()
+function script_update(script)
   if (btnp(key.up)) choice -= 1
   if (btnp(key.down)) choice += 1
 
   -- Wrap around
-  if (choice > #(menu.options)) then
+  if (choice > #(script.options)) then
     choice = 1
   elseif (choice < 1) then
-    choice = #(menu.options)
+    choice = #(script.options)
   end
 
   if (btnp(key.a)) then
-    menu.functions[choice]()
+    current_script = script.options[choice].script
+    choice = 1
   end
 end
 
 function _update()
   scanline_update()
 
-  menu_update()
+  script_update(current_script)
 end
 
-function draw_menu()
+function draw_script(script)
   color(7)
 
   print("", menu_x, menu_y, menu_col)
+  print(script.text)
+  print("")
 
-  i = 1
-  while i <= #(menu.options) do
-    if i == choice then
-      print("* "..menu.options[i])
-    else
-      print("  "..menu.options[i])
+  if(script.options ~= nil) then
+    i = 1
+    while i <= #(script.options) do
+      if i == choice then
+        print("* "..script.options[i].text)
+      else
+        print("  "..script.options[i].text)
+      end
+      i += 1
     end
-    i += 1
   end
 end
 
@@ -131,7 +137,7 @@ end
 function _draw()
   cls()
 
-  draw_menu()
+  draw_script(current_script)
 
   draw_scanline()
 
