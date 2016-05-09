@@ -3,13 +3,19 @@ version 7
 __lua__
 
 -- constants
-btn_up = 2
-btn_dn = 3
-btn_a = 4
-btn_b = 5
+key = {
+  left = 0,
+  right = 1,
+  up = 2,
+  down = 3,
+  a = 4,
+  b = 5
+}
 
-screen_width=128
-screen_height=128
+screen = {
+  width = 128,
+  height = 128
+}
 
 function not_implemented()
   printh "Not implemented"
@@ -58,10 +64,10 @@ end
 
 function _update()
   scanline_index += 1
-  if (scanline_index > screen_height) scanline_index = 0
+  if (scanline_index > screen.height) scanline_index = 0
 
-  if (btnp(btn_up)) choice -= 1
-  if (btnp(btn_dn)) choice += 1
+  if (btnp(key.up)) choice -= 1
+  if (btnp(key.down)) choice += 1
 
   -- Wrap around
   if (choice > #(menu.options)) then
@@ -70,7 +76,7 @@ function _update()
     choice = #(menu.options)
   end
 
-  if (btnp(btn_a)) then
+  if (btnp(key.a)) then
     menu.functions[choice]()
   end
 end
@@ -93,17 +99,17 @@ end
 
 function draw_scanline()
   color(2)
-  line(0, scanline_index-3, screen_width, scanline_index-3)
-  line(0, scanline_index+3, screen_width, scanline_index+3)
+  line(0, scanline_index-3, screen.width, scanline_index-3)
+  line(0, scanline_index+3, screen.width, scanline_index+3)
 
   color(14)
-  line(0, scanline_index-2, screen_width, scanline_index-2)
-  line(0, scanline_index-1, screen_width, scanline_index-1)
-  line(0, scanline_index+1, screen_width, scanline_index+1)
-  line(0, scanline_index+2, screen_width, scanline_index+2)
+  line(0, scanline_index-2, screen.width, scanline_index-2)
+  line(0, scanline_index-1, screen.width, scanline_index-1)
+  line(0, scanline_index+1, screen.width, scanline_index+1)
+  line(0, scanline_index+2, screen.width, scanline_index+2)
 
   color(15)
-  line(0, scanline_index, screen_width, scanline_index)
+  line(0, scanline_index, screen.width, scanline_index)
 end
 
 -- Flash a word over the first menu option when the scanline passes over it.
