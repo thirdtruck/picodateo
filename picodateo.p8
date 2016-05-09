@@ -80,9 +80,15 @@ function _init()
   choice = 1
   current_script = script_start
   current_avatar = avatars.dateo_robo
-  hand = {
-    left = { x = 17, y = 24 },
-    right = { x = 31, y = 24 }
+  current_hands = {
+    left = {
+      x = 17, y = 24,
+      offset = { x = 0, y = 0 }
+    },
+    right = {
+      x = 31, y = 24,
+      offset = { x = 0, y = 0 }
+    },
   }
 end
 
@@ -103,7 +109,11 @@ function script_update(script)
   end
 end
 
+function hand_update(hand)
+end
+
 function _update()
+  hand_update(current_hands)
   script_update(current_script)
 end
 
@@ -129,13 +139,18 @@ end
 
 function draw_avatar(avatar)
   map(avatar.cel.x, avatar.cel.y, 20, 20, avatar.width, avatar.height)
-
-  draw_hand(avatar, hand.left.x, hand.left.y)
-  draw_hand(avatar, hand.right.x, hand.right.y)
 end
 
-function draw_hand(avatar, x, y)
-  map(avatar.hand.cel.x, avatar.hand.cel.y, x, y, avatar.hand.width, avatar.hand.height)
+function draw_hand(hand, avatar)
+  map(avatar.hand.cel.x, avatar.hand.cel.y,
+      hand.x + hand.offset.x,
+      hand.y + hand.offset.y,
+      avatar.hand.width, avatar.hand.height)
+end
+
+function draw_hands(hands, avatar)
+  draw_hand(hands.left, avatar)
+  draw_hand(hands.right, avatar)
 end
 
 function _draw()
@@ -144,6 +159,8 @@ function _draw()
   draw_script(current_script)
 
   draw_avatar(current_avatar)
+
+  draw_hands(current_hands, current_avatar)
 end
 __gfx__
 00000000000070000007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
