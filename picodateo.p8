@@ -25,6 +25,17 @@ menu_x = 0
 menu_y = 40
 menu_col = 7
 
+avatars = {
+  dateo_robo = {
+    cel = {
+      x = 0,
+      y = 0
+    },
+    width = 2,
+    height = 3
+  }
+}
+
 script_start = {
   text = "welcome to picodateo",
   options = {
@@ -60,6 +71,7 @@ script_start = {
 function _init()
   choice = 1
   current_script = script_start
+  current_avatar = avatars.dateo_robo
 end
 
 function script_update(script)
@@ -103,10 +115,19 @@ function draw_script(script)
   end
 end
 
+function draw_avatar(avatar)
+  avatar_x = 20
+  avatar_y = 20
+
+  map(avatar.cel.x, avatar.cel.y, 20, 20, avatar.width, avatar.height)
+end
+
 function _draw()
   cls()
 
   draw_script(current_script)
+
+  draw_avatar(current_avatar)
 end
 __gfx__
 00000000000070000007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
