@@ -62,10 +62,12 @@ function go_to_menu(new_menu)
   choice = 1
 end
 
-function _update()
+function scanline_update()
   scanline_index += 1
-  if (scanline_index > screen.height) scanline_index = 0
+  if (scanline_index > screen.height) then scanline_index = 0 end
+end
 
+function menu_update()
   if (btnp(key.up)) choice -= 1
   if (btnp(key.down)) choice += 1
 
@@ -79,6 +81,12 @@ function _update()
   if (btnp(key.a)) then
     menu.functions[choice]()
   end
+end
+
+function _update()
+  scanline_update()
+
+  menu_update()
 end
 
 function draw_menu()
