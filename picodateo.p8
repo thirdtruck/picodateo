@@ -82,13 +82,15 @@ function _init()
   current_avatar = avatars.dateo_robo
   current_hands = {
     left = {
-      x = 17, y = 24,
+      x = 16, y = 24,
       offset = { x = 0, y = 0 }
     },
     right = {
-      x = 31, y = 24,
+      x = 32, y = 24,
       offset = { x = 0, y = 0 }
     },
+    animation_index = 0,
+    speed = 50
   }
 end
 
@@ -109,11 +111,16 @@ function script_update(script)
   end
 end
 
-function hand_update(hand)
+function hands_update(hands)
+  hands.animation_index += 1
+  if(hands.animation_index > hands.speed) hands.animation_index = 0
+
+  hands.left.offset.y = flr(sin(hands.animation_index/hands.speed)*3)
+  hands.right.offset.y = flr(sin((-1*hands.animation_index/hands.speed))*3)
 end
 
 function _update()
-  hand_update(current_hands)
+  hands_update(current_hands)
   script_update(current_script)
 end
 
