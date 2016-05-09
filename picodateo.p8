@@ -18,7 +18,7 @@ screen = {
 }
 
 function not_implemented()
-  printh "Not implemented"
+  printh "not implemented"
 end
 
 menu_x = 0
@@ -26,28 +26,28 @@ menu_y = 40
 menu_col = 7
 
 script_start = {
-  text = "Welcome to picodateo",
+  text = "welcome to picodateo",
   options = {
     {
-      text = "New Game",
+      text = "new game",
       script = {
-        text = "Hello, new user",
+        text = "hello, new user",
         options = {
           {
-            text = "First option",
+            text = "first option",
             script = {
-              text = "You've chosen the first option",
+              text = "you've chosen the first option",
               options = {
-                { text = "Third option" }
+                { text = "third option" }
               }
             }
           },
           {
-            text = "Second option",
+            text = "second option",
             script = {
-              text = "You've chosen the second option",
+              text = "you've chosen the second option",
               options = {
-                { text = "Fourth option" }
+                { text = "fourth option" }
               }
             }
           }
@@ -66,7 +66,7 @@ function script_update(script)
   if (btnp(key.up)) choice -= 1
   if (btnp(key.down)) choice += 1
 
-  -- Wrap around
+  -- wrap around
   if (choice > #(script.options)) then
     choice = 1
   elseif (choice < 1) then
