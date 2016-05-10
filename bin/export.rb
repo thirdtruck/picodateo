@@ -42,6 +42,30 @@ class Assignment
   end
 end
 
+class Increment
+  attr_accessor :variable
+
+  def initialize(variable)
+    self.variable = variable
+  end
+
+  def to_s
+    %Q(type="increment",variable="#{variable}")
+  end
+end
+
+class Decrement
+  attr_accessor :variable
+
+  def initialize(variable)
+    self.variable = variable
+  end
+
+  def to_s
+    %Q(type="decrement",variable="#{variable}")
+  end
+end
+
 class Option
   attr_accessor :text, :next_scene
 
@@ -157,6 +181,20 @@ script_text.each_line do |line|
     value = $2.to_i
 
     assignment = Assignment.new(variable, value)
+    scene_commands.push(assignment)
+  end
+
+  if line =~ /^\[inc:(\w+)\]$/
+    variable = $1
+
+    assignment = Increment.new(variable)
+    scene_commands.push(assignment)
+  end
+
+  if line =~ /^\[dec:(\w+)\]$/
+    variable = $1
+
+    assignment = Decrement.new(variable)
     scene_commands.push(assignment)
   end
 end

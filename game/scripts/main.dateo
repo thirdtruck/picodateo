@@ -18,11 +18,13 @@ scene: new_game
     option(second_option): second option
 
 scene: first_option
+  [inc:c1]
   [robo] you've chosen the first option
   choice:
     option(new_game): go back
 
 scene: second_option
+  [inc:c2]
   [robo] you've chosen the second option
   choice:
     option(new_game): go back

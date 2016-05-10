@@ -44,7 +44,7 @@ avatars = {
   }
 }
 
-scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="narration",text="press 'z' key to advance"},{type="narration",text="up/down keys on menus"},{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="hello, new user"},{type="stage_direction",actor="robo",instructions="hide"},{type="speech",speaker="robo",text="where did you go, new user?"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="speech",speaker="robo",text="you've chosen the first option"},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
+scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="narration",text="press 'z' key to advance"},{type="narration",text="up/down keys on menus"},{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="hello, new user"},{type="stage_direction",actor="robo",instructions="hide"},{type="speech",speaker="robo",text="where did you go, new user?"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you've chosen the first option"},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
 
 function _init()
   variables = {}
@@ -97,6 +97,16 @@ function script_update(script)
     current_command = current_scene[current_command_index]
   elseif (current_command.type == "assignment") then
     variables[current_command.variable] = current_command.value
+
+    current_command_index += 1
+    current_command = current_scene[current_command_index]
+  elseif (current_command.type == "increment") then
+    variables[current_command.variable] += 1
+
+    current_command_index += 1
+    current_command = current_scene[current_command_index]
+  elseif (current_command.type == "decrement") then
+    variables[current_command.variable] -= 1
 
     current_command_index += 1
     current_command = current_scene[current_command_index]
