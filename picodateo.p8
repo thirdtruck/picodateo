@@ -44,39 +44,13 @@ avatars = {
   }
 }
 
-scenes = {
-  first_choice = {
-    type = "narration",
-    text = "you made the first choice",
-    go_to = "script_start"
-  },
-  second_choice = {
-    type = "narration",
-    text = "you made the second choice",
-    go_to = "script_start"
-  },
-  script_start = {
-    type = "narration",
-    text = "welcome to picodateo",
-    next = {
-      type = "speech",
-      speaker = "robo",
-      text = "how are you today?",
-      next = {
-        type = "choice",
-        options = {
-          { text = "first choice", go_to = "first_choice" },
-          { text = "second choice", go_to = "second_choice" }
-        }
-      }
-    }
-  }
-}
+scenes={init={{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="speech",speaker="robo",text="hello, new user"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="speech",speaker="robo",text="you've chosen the first option"},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
 
 function _init()
   current_option = 1
-  current_script = scenes.script_start
-  current_command = scenes.script_start
+  current_scene = scenes.init
+  current_command_index = 1
+  current_command = current_scene[current_command_index]
   current_avatar = avatars.dateo_robo
   current_hands = {
     left = {
@@ -105,15 +79,20 @@ function script_update(script)
     end
 
     if (btnp(key.a)) then
-      current_command = scenes[current_command.options[current_option].go_to]
+      current_command_index = 1
+      current_scene = scenes[current_command.options[current_option].go_to]
+      current_command = current_scene[current_command_index]
       current_option = 1
     end
   else
     if (btnp(key.a)) then
       if (current_command.go_to) then
-        current_command = scenes[current_command.go_to]
+        current_command_index = 1
+        current_scene = scenes[current_command.go_to]
+        current_command = current_scene[current_command_index]
       else
-        current_command = current_command.next
+        current_command_index += 1
+        current_command = current_scene[current_command_index]
       end
       current_option = 1
     end
