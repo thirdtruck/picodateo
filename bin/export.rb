@@ -66,6 +66,27 @@ class Decrement
   end
 end
 
+class IfConditional
+  attr_accessor :variable, :operator, :value, :commands
+
+  def initialize(variable, operator, value, commands=[])
+    self.variable = variable
+    self.operator = operator
+    self.value = value
+    self.commands = commands
+  end
+
+  def to_s
+    %Q(type="if",variable="#{variable}",operator="#{operator}",value=#{value},commands=#{commands_to_s})
+  end
+
+  private
+
+  def commands_to_s
+    commands.map {|c| "{#{c}}"}.join(',')
+  end
+end
+
 class Option
   attr_accessor :text, :next_scene
 
@@ -95,7 +116,7 @@ end
 class Scene
   attr_accessor :commands
 
-  def initialize(commands)
+  def initialize(commands=[])
     self.commands = commands
   end
 
@@ -127,29 +148,37 @@ script_text = File.read('game/scripts/main.dateo')
 
 scene_name = nil
 scene_commands = []
+conditional_stack = [scene_commands]
 
 choice = nil
 
+in_conditional = false
+conditional = nil
+
 script_text.each_line do |line|
   line.strip!
+
   if line =~ /^scene:\s*(\w+)$/
     new_scene_name = $1.to_sym
 
     if scene_name
       if choice
-        scene_commands.push(choice)
+        conditional_stack.last.push(choice)
         choice = nil
       end
-      game.scenes[scene_name] = scene_commands
+      game.scenes[scene_name] = conditional_stack.last
     end
 
     scene_name = new_scene_name
     scene_commands = []
+    conditional_stack = [scene_commands]
     choice = nil
+    next
   end
 
   if line =~ /^choice:$/
     choice = Choice.new
+    next
   end
 
   if line =~ /^option\((\w+)\):\s*(.*)$/
@@ -158,22 +187,7 @@ script_text.each_line do |line|
 
     option = Option.new(text, next_scene)
     choice.options.push(option)
-  end
-
-  if line =~ /^\[(\w*)\]\s*(.*)$/
-    actor = $1 != "" ? $1.to_sym : :_narrator
-    text = $2
-    
-    actor_event = ActorEvent.new(actor, text)
-    scene_commands.push(actor_event)
-  end
-
-  if line =~ /^\[(\w*)\|(\w*)\]$/
-    actor = $1 != "" ? $1.to_sym : :_narrator
-    instructions = $2.to_sym
-
-    stage_direction = StageDirection.new(actor, instructions)
-    scene_commands.push(stage_direction)
+    next
   end
 
   if line =~ /^\[set:(\w+)=\d+\]$/
@@ -181,21 +195,64 @@ script_text.each_line do |line|
     value = $2.to_i
 
     assignment = Assignment.new(variable, value)
-    scene_commands.push(assignment)
+    conditional_stack.last.push(assignment)
+    next
   end
 
   if line =~ /^\[inc:(\w+)\]$/
     variable = $1
 
     assignment = Increment.new(variable)
-    scene_commands.push(assignment)
+    conditional_stack.last.push(assignment)
+    next
   end
 
   if line =~ /^\[dec:(\w+)\]$/
     variable = $1
 
     assignment = Decrement.new(variable)
-    scene_commands.push(assignment)
+    conditional_stack.last.push(assignment)
+    next
+  end
+
+  if line =~ /^\[if:(.+)\]$/
+    in_conditional = true
+
+    comparison = $1
+    comparison =~ /^(\w+)(=|<=|>=|<|>|!=)(\d+)$/
+    variable = $1
+    operator = $2
+    value = $3
+
+    conditional = IfConditional.new(variable, operator, value)
+    conditional_stack.push([])
+    next
+  end
+
+  if line =~ /^\[endif\]$/
+    in_conditional = false
+    conditional.commands = conditional_stack.pop
+    conditional_stack.last.push(conditional)
+    conditional = nil
+    next
+  end
+
+  if line =~ /^\[(\w*)\]\s*(.*)$/
+    actor = $1 != "" ? $1.to_sym : :_narrator
+    text = $2
+
+    actor_event = ActorEvent.new(actor, text)
+    conditional_stack.last.push(actor_event)
+    next
+  end
+
+  if line =~ /^\[(\w*)\|(\w*)\]$/
+    actor = $1 != "" ? $1.to_sym : :_narrator
+    instructions = $2.to_sym
+
+    stage_direction = StageDirection.new(actor, instructions)
+    conditional_stack.last.push(stage_direction)
+    next
   end
 end
 

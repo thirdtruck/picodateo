@@ -19,7 +19,12 @@ scene: new_game
 
 scene: first_option
   [inc:c1]
-  [robo] you've chosen the first option
+  [if:c1=0]
+    [robo] you've chosen the first option
+  [endif]
+  [if:c1>0]
+    [robo] the first option again?
+  [endif]
   choice:
     option(new_game): go back
 

@@ -44,7 +44,7 @@ avatars = {
   }
 }
 
-scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="narration",text="press 'z' key to advance"},{type="narration",text="up/down keys on menus"},{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="hello, new user"},{type="stage_direction",actor="robo",instructions="hide"},{type="speech",speaker="robo",text="where did you go, new user?"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you've chosen the first option"},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
+scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="narration",text="press 'z' key to advance"},{type="narration",text="up/down keys on menus"},{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="hello, new user"},{type="stage_direction",actor="robo",instructions="hide"},{type="speech",speaker="robo",text="where did you go, new user?"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="increment",variable="c1"},{type="if",variable="c1",operator="=",value=0,commands={type="speech",speaker="robo",text="you've chosen the first option"}},{type="if",variable="c1",operator=">",value=0,commands={type="speech",speaker="robo",text="the first option again?"}},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
 
 function _init()
   variables = {}
@@ -68,61 +68,87 @@ function _init()
 end
 
 function script_update(script)
-  if (current_command.type == "choice") then
+  current_command = run_command(current_command)
+end
+
+function run_command(command)
+  if (command.type == "choice") then
     if (btnp(key.up)) current_option -= 1
     if (btnp(key.down)) current_option += 1
 
     -- wrap around
-    if (current_option > #(current_command.options)) then
+    if (current_option > #(command.options)) then
       current_option = 1
     elseif (current_option < 1) then
-      current_option = #(current_command.options)
+      current_option = #(command.options)
     end
 
     if (btnp(key.a)) then
       current_command_index = 1
-      current_scene = scenes[current_command.options[current_option].go_to]
-      current_command = current_scene[current_command_index]
+      current_scene = scenes[command.options[current_option].go_to]
+      command = current_scene[current_command_index]
       current_option = 1
     end
-  elseif (current_command.type == "stage_direction") then
-    if (current_command.instructions == "show") then
-      current_avatar = avatars[current_command.actor]
+  elseif (command.type == "stage_direction") then
+    if (command.instructions == "show") then
+      current_avatar = avatars[command.actor]
     end
-    if (current_command.instructions == "hide") then
+    if (command.instructions == "hide") then
       current_avatar = nil
     end
     -- assumption: all stage directions should immediately be followed by the next command
     current_command_index += 1
-    current_command = current_scene[current_command_index]
-  elseif (current_command.type == "assignment") then
-    variables[current_command.variable] = current_command.value
+    command = current_scene[current_command_index]
+  elseif (command.type == "assignment") then
+    variables[command.variable] = command.value
 
     current_command_index += 1
-    current_command = current_scene[current_command_index]
-  elseif (current_command.type == "increment") then
-    variables[current_command.variable] += 1
+    command = current_scene[current_command_index]
+  elseif (command.type == "increment") then
+    variables[command.variable] += 1
 
     current_command_index += 1
-    current_command = current_scene[current_command_index]
-  elseif (current_command.type == "decrement") then
-    variables[current_command.variable] -= 1
+    command = current_scene[current_command_index]
+  elseif (command.type == "decrement") then
+    variables[command.variable] -= 1
 
     current_command_index += 1
-    current_command = current_scene[current_command_index]
+    command = current_scene[current_command_index]
+  elseif (command.type == "if") then
+    local op = command.operator
+    local left = variables[command.variable]
+    local right = command.value
+
+    local execute = false
+
+    if (op == "=") then
+      if (left == right) then execute = true end
+    elseif (op == "<") then
+      if (left < right) then execute = true end
+    elseif (op == "<=") then
+      if (left <= right) then execute = true end
+    elseif (op == ">") then
+      if (left > right) then execute = true end
+    elseif (op == ">=") then
+      if (left >= right) then execute = true end
+    elseif (op == "!=") then
+      if (left ~= right) then execute = true end
+    end
   else
     if (btnp(key.a)) then
-      if (current_command.go_to) then
+      if (command.go_to) then
         current_command_index = 1
-        current_scene = scenes[current_command.go_to]
-        current_command = current_scene[current_command_index]
+        current_scene = scenes[command.go_to]
+        command = current_scene[current_command_index]
       else
         current_command_index += 1
-        current_command = current_scene[current_command_index]
+        command = current_scene[current_command_index]
       end
       current_option = 1
     end
   end
+
+  return command
 end
 
 function hands_update(hands)
