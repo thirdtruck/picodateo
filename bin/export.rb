@@ -16,6 +16,19 @@ class ActorEvent
   end
 end
 
+class StageDirection
+  attr_accessor :actor, :instructions
+
+  def initialize(actor, instructions)
+    self.actor = actor
+    self.instructions = instructions
+  end
+
+  def to_s
+    "type=\"stage_direction\",actor=\"#{actor}\",instructions=\"#{instructions}\""
+  end
+end
+
 class Option
   attr_accessor :text, :next_scene
 
@@ -116,6 +129,14 @@ script_text.each_line do |line|
     
     actor_event = ActorEvent.new(actor, text)
     scene_commands.push(actor_event)
+  end
+
+  if line =~ /^\[(\w*)\|(\w*)\]$/
+    actor = $1 != "" ? $1.to_sym : :_narrator
+    instructions = $2.to_sym
+
+    stage_direction = StageDirection.new(actor, instructions)
+    scene_commands.push(stage_direction)
   end
 end
 

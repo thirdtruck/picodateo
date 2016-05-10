@@ -26,7 +26,7 @@ menu_y = 40
 menu_col = 7
 
 avatars = {
-  dateo_robo = {
+  robo = {
     cel = {
       x = 0,
       y = 0
@@ -44,14 +44,14 @@ avatars = {
   }
 }
 
-scenes={init={{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="speech",speaker="robo",text="hello, new user"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="speech",speaker="robo",text="you've chosen the first option"},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
+scenes={init={{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="hello, new user"},{type="stage_direction",actor="robo",instructions="hide"},{type="speech",speaker="robo",text="where did you go, new user?"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="speech",speaker="robo",text="you've chosen the first option"},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
 
 function _init()
   current_option = 1
   current_scene = scenes.init
   current_command_index = 1
   current_command = current_scene[current_command_index]
-  current_avatar = avatars.dateo_robo
+  current_avatar = nil
   current_hands = {
     left = {
       x = 16, y = 24,
@@ -84,6 +84,16 @@ function script_update(script)
       current_command = current_scene[current_command_index]
       current_option = 1
     end
+  elseif (current_command.type == "stage_direction") then
+    if (current_command.instructions == "show") then
+      current_avatar = avatars[current_command.actor]
+    end
+    if (current_command.instructions == "hide") then
+      current_avatar = nil
+    end
+    -- assumption: all stage directions should immediately be followed by the next command
+    current_command_index += 1
+    current_command = current_scene[current_command_index]
   else
     if (btnp(key.a)) then
       if (current_command.go_to) then
@@ -156,9 +166,11 @@ function _draw()
 
   draw_script(current_script)
 
-  draw_avatar(current_avatar)
+  if current_avatar then
+    draw_avatar(current_avatar)
 
-  draw_hands(current_hands, current_avatar)
+    draw_hands(current_hands, current_avatar)
+  end
 end
 __gfx__
 00000000000070000007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000

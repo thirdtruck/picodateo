@@ -5,7 +5,10 @@ scene: init
     option(new_game): new game
 
 scene: new_game
+  [robo|show]
   [robo] hello, new user
+  [robo|hide]
+  [robo] where did you go, new user?
   choice:
     option(first_option): first option
     option(second_option): second option
