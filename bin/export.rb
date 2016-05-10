@@ -29,6 +29,19 @@ class StageDirection
   end
 end
 
+class Assignment
+  attr_accessor :variable, :value
+
+  def initialize(variable, value)
+    self.variable = variable
+    self.value = value
+  end
+
+  def to_s
+    %Q(type="assignment",variable="#{variable}",value=#{value})
+  end
+end
+
 class Option
   attr_accessor :text, :next_scene
 
@@ -137,6 +150,14 @@ script_text.each_line do |line|
 
     stage_direction = StageDirection.new(actor, instructions)
     scene_commands.push(stage_direction)
+  end
+
+  if line =~ /^\[set:(\w+)=\d+\]$/
+    variable = $1
+    value = $2.to_i
+
+    assignment = Assignment.new(variable, value)
+    scene_commands.push(assignment)
   end
 end
 

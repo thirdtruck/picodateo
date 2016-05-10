@@ -1,4 +1,6 @@
 scene: init
+  [set:c1=0]
+  [set:c2=0]
   [] press 'z' key to advance
   [] up/down keys on menus
   [] welcome to picodateo
