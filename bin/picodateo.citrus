@@ -1,0 +1,60 @@
+grammar PicoDateo
+  rule script
+    (scene newline space commands) {
+      scene = capture(:scene).value
+      scene.commands = capture(:commands).value
+      scene
+    }
+  end
+
+  rule commands
+    ((speech)*) {
+      matches.map { |m| m.value }
+    }
+  end
+
+  rule scene
+    (scene_prompt space scene_name:(chars) space) {
+      scene_name = capture(:scene_name).value.to_sym
+      scene = Scene.new(scene_name, [])
+      scenes[scene_name] = scene
+      scene
+    }
+  end
+
+  rule actor_prompt
+    ('[' actor_name:(chars*) ']') {
+      capture(:actor_name).value
+    }
+  end
+
+  rule speech_text
+    !newline .*
+  end
+
+  rule speech
+    (actor_prompt space speech_text space) {
+      Speech.new(capture(:actor_prompt).value.to_sym, capture(:speech_text).value)
+    }
+  end
+
+  rule scene_prompt
+    'scene:'
+  end
+
+  rule scene_name
+    chars
+  end
+    
+  rule chars
+    [a-zA-Z_]+
+  end
+
+  rule space
+    [ \t]*
+  end
+
+  rule newline
+    [\n\r]+
+  end
+end
