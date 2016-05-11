@@ -4,4 +4,7 @@ scene: init
 
 scene: goodbye
   [robo] it was nice seeing you
-  [robo] come back again soon
+  if(x)
+    [robo] come back again soon
+    [robo] we'll look forward to it
+  endif

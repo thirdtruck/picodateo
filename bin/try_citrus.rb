@@ -33,9 +33,14 @@ Game = Struct.new(:scenes) do
   end
 end
 
+IfCond = Struct.new(:condition, :commands) do
+  def to_s
+    %Q{type="if" condition="#{condition}" commands={#{commands.map {|c| "{#{c}}"}.join(',')}}}
+  end
+end
+
 Citrus.load 'bin/picodateo'
 m = PicoDateo.parse File.read('game/scripts/citrus.dateo')
-cs = nil
 game = m.value
 #binding.pry
 puts game

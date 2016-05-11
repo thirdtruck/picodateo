@@ -6,13 +6,12 @@ grammar PicoDateo
   end
 
   rule commands
-    (speech | speech newline)+
+    (speech | speech newline | if_cond)+
   end
 
   rule scene
     (scene_prompt space scene_name:(chars) space newline commands) {
       scene_name = capture(:scene_name).value.to_sym
-      cs = capture(:commands)
       c = capture(:commands).matches.map { |m| m.value }
       Scene.new(scene_name, c)
     }
@@ -31,6 +30,12 @@ grammar PicoDateo
   rule speech
     (space actor_prompt space speech_text space newline) {
       Speech.new(capture(:actor_prompt).value.to_sym, capture(:speech_text).value.strip)
+    }
+  end
+
+  rule if_cond
+    (space 'if(x)' space newline commands space 'endif' space newline) {
+      IfCond.new('wip', capture(:commands).matches.map { |m| m.value })
     }
   end
 
