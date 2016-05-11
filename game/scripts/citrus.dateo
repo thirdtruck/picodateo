@@ -1,2 +1,7 @@
 scene: init
   [robo] welcome to the game
+  [robo] i hope you enjoy your stay
+
+scene: goodbye
+  [robo] it was nice seeing you
+  [robo] come back again soon

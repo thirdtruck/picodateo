@@ -1,24 +1,20 @@
 grammar PicoDateo
-  rule script
-    (scene newline space commands) {
-      scene = capture(:scene).value
-      scene.commands = capture(:commands).value
-      scene
+  rule game
+    (scene*) {
+      Game.new(matches.map { |m| [m.value.name, m.value] }.to_h)
     }
   end
 
   rule commands
-    ((speech)*) {
-      matches.map { |m| m.value }
-    }
+    (speech | speech newline)+
   end
 
   rule scene
-    (scene_prompt space scene_name:(chars) space) {
+    (scene_prompt space scene_name:(chars) space newline commands) {
       scene_name = capture(:scene_name).value.to_sym
-      scene = Scene.new(scene_name, [])
-      scenes[scene_name] = scene
-      scene
+      cs = capture(:commands)
+      c = capture(:commands).matches.map { |m| m.value }
+      Scene.new(scene_name, c)
     }
   end
 
@@ -29,12 +25,12 @@ grammar PicoDateo
   end
 
   rule speech_text
-    !newline .*
+    [^\n]*
   end
 
   rule speech
-    (actor_prompt space speech_text space) {
-      Speech.new(capture(:actor_prompt).value.to_sym, capture(:speech_text).value)
+    (space actor_prompt space speech_text space newline) {
+      Speech.new(capture(:actor_prompt).value.to_sym, capture(:speech_text).value.strip)
     }
   end
 
