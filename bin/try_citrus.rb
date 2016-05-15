@@ -16,9 +16,9 @@ Speech = Struct.new(:actor, :text) do
     # TODO: Add explicit escape sequences, if necessary
     escaped_text = text.inspect
     if actor == :_narrator
-      "type=\"narration\",text=#{escaped_text}"
+      %Q(type="narration",text=#{escaped_text})
     else
-      "type=\"speech\",speaker=\"#{actor}\",text=#{escaped_text}"
+      %Q(type="speech",speaker="#{actor}",text=#{escaped_text})
     end
   end
 end
@@ -29,13 +29,14 @@ Game = Struct.new(:scenes) do
     scenes.each_pair do |name, scene|
       scene_strings << "#{name}={#{scene}}"
     end
-    "scenes={#{scene_strings.join(',')}}"
+    %Q(scenes={#{scene_strings.join(',')}})
   end
 end
 
 IfCond = Struct.new(:condition, :commands) do
   def to_s
-    %Q{type="if" condition="#{condition}" commands={#{commands.map {|c| "{#{c}}"}.join(',')}}}
+    command_strings = commands.map {|c| "{#{c}}"}.join(',')
+    %Q(type="if",condition="#{condition}",commands={#{command_strings}})
   end
 end
 

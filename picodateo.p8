@@ -44,7 +44,7 @@ avatars = {
   }
 }
 
-scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="narration",text="press 'z' key to advance"},{type="narration",text="up/down keys on menus"},{type="narration",text="welcome to picodateo"},{type="narration",text="we hope you enjoy your stay"},{type="choice",options={{text="new game",go_to="new_game"}}}},new_game={{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="hello, new user"},{type="stage_direction",actor="robo",instructions="hide"},{type="speech",speaker="robo",text="where did you go, new user?"},{type="choice",options={{text="first option",go_to="first_option"},{text="second option",go_to="second_option"}}}},first_option={{type="increment",variable="c1"},{type="if",variable="c1",operator="=",value=0,commands={type="speech",speaker="robo",text="you've chosen the first option"}},{type="if",variable="c1",operator=">",value=0,commands={type="speech",speaker="robo",text="the first option again?"}},{type="choice",options={{text="go back",go_to="new_game"}}}},second_option={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you've chosen the second option"},{type="choice",options={{text="go back",go_to="new_game"}}}}}
+scenes={init={{type="speech",speaker="robo",text="welcome to the game"},{type="speech",speaker="robo",text="i hope you enjoy your stay"}},goodbye={{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",condition="wip",commands={{type="speech",speaker="robo",text="come back again soon"},{type="speech",speaker="robo",text="we'll look forward to it"}}}}}
 
 function _init()
   variables = {}
