@@ -44,7 +44,7 @@ avatars = {
   }
 }
 
-scenes={init={{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="speech",speaker="robo",text="it was nice seeing you"},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"},{type="if",condition="wip",commands={{type="speech",speaker="robo",text="come back again soon"},{type="speech",speaker="robo",text="we'll look forward to it"}}}}}
+scenes={init={{type="assignment",variable="c1",value=0},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="speech",speaker="robo",text="it was nice seeing you"},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"},{type="if",condition="wip",commands={{type="speech",speaker="robo",text="come back again soon"},{type="speech",speaker="robo",text="we'll look forward to it"}}}}}
 
 function _init()
   variables = {}
@@ -108,7 +108,7 @@ function run_command(command)
     variables[command.variable] = command.value
 
     current_command_index += 1
-    command = current_scene[current_command_index]
+    return(run_command(current_scene[current_command_index]))
   elseif (command.type == "increment") then
     variables[command.variable] += 1
 

@@ -1,4 +1,5 @@
 scene(init):
+  set(c1=0)
   [] welcome to the game
   [robo:show]
   [robo] i hope you enjoy your stay

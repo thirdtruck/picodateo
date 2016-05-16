@@ -30,6 +30,12 @@ Choice = Struct.new(:options) do
   end
 end
 
+Assignment = Struct.new(:variable, :value) do
+  def to_s
+    %Q(type="assignment",variable="#{variable}",value=#{value})
+  end
+end
+
 Option = Struct.new(:text, :go_to) do
   def to_s
     %Q({text="#{text}",go_to="#{go_to}"})
