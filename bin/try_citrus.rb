@@ -23,6 +23,19 @@ StageDirection = Struct.new(:actor, :instructions) do
   end
 end
 
+Choice = Struct.new(:options) do
+  def to_s
+    option_text = options.map { |o| o.to_s }.join(',')
+    %Q(type="choice",options={#{option_text}})
+  end
+end
+
+Option = Struct.new(:text, :go_to) do
+  def to_s
+    %Q({text="#{text}",go_to="#{go_to}"})
+  end
+end
+
 Speech = Struct.new(:speaker, :text) do
   def to_s
     # TODO: Add explicit escape sequences, if necessary

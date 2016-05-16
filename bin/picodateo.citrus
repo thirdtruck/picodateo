@@ -6,7 +6,7 @@ grammar PicoDateo
   end
 
   rule commands
-    (speech | speech newline | if_cond | jump | stage_direction)+
+    (speech | speech newline | if_cond | jump | stage_direction | choice)+
   end
 
   rule scene
@@ -14,6 +14,19 @@ grammar PicoDateo
       scene_name = capture(:scene_name).value.to_sym
       c = capture(:commands).matches.map { |m| m.value }
       Scene.new(scene_name, c)
+    }
+  end
+
+  rule choice
+    (space 'choice:' space newline options:(option*) space 'end' newline) {
+      options = capture(:options).matches.map { |m| m.value }
+      Choice.new(options || [])
+    }
+  end
+
+  rule option
+    (space 'option(' scene_name:(chars) '):' space speech_text newline space 'end' newline) {
+      Option.new(capture(:speech_text), capture(:scene_name))
     }
   end
 
