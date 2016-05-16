@@ -10,7 +10,7 @@ grammar PicoDateo
   end
 
   rule scene
-    (scene_prompt space scene_name:(chars) space newline commands) {
+    ('scene(' scene_name:(chars) '):' newline commands) {
       scene_name = capture(:scene_name).value.to_sym
       c = capture(:commands).matches.map { |m| m.value }
       Scene.new(scene_name, c)
@@ -79,10 +79,6 @@ grammar PicoDateo
     (space 'jump(' scene_name ')' space newline) {
       SceneJump.new(capture(:scene_name))
     }
-  end
-
-  rule scene_prompt
-    'scene:'
   end
 
   rule scene_name

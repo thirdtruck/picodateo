@@ -1,4 +1,4 @@
-scene: init
+scene(init):
   [] welcome to the game
   [robo:show]
   [robo] i hope you enjoy your stay
@@ -10,15 +10,15 @@ scene: init
   end
   jump(goodbye)
 
-scene: first_choice
+scene(first_choice):
   [robo] you made the first choice
   jump(goodbye)
 
-scene: second_choice
+scene(second_choice):
   [robo] you made the second choice
   jump(goodbye)
 
-scene: goodbye
+scene(goodbye):
   [robo] it was nice seeing you
   [robo:hide]
   [] goodbye
