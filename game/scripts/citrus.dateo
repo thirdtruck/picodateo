@@ -29,10 +29,12 @@ end
 scene(goodbye):
   dec(c3)
   [robo] it was nice seeing you
+  if(c1=1)
+    [robo] come back again soon
+  end
+  if(c2=1)
+    [robo] you're always welcome
+  end
   [robo:hide]
   [] goodbye
-  if(x)
-    [robo] come back again soon
-    [robo] we'll look forward to it
-  end
 end

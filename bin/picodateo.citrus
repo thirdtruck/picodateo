@@ -91,9 +91,14 @@ grammar PicoDateo
     }
   end
 
+  rule operand
+    '=' | '>=' | '<=' | '>' | '<' | '!='
+  end
+
   rule if_cond
-    (space 'if(x)' space newline commands space 'end' space newline) {
-      IfCond.new('wip', capture(:commands).matches.map { |m| m.value })
+    (space 'if(' variable_name operand compared_to:([0-9]+) ')' space newline commands space 'end' space newline) {
+      commands = capture(:commands).matches.map { |m| m.value }
+      IfCond.new(capture(:variable_name), capture(:operand), capture(:compared_to), commands)
     }
   end
 

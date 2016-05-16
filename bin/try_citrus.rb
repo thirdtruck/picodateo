@@ -82,10 +82,10 @@ Game = Struct.new(:scenes) do
   end
 end
 
-IfCond = Struct.new(:condition, :commands) do
+IfCond = Struct.new(:variable, :operand, :value, :commands) do
   def to_s
     command_strings = commands.map {|c| "{#{c}}"}.join(',')
-    %Q(type="if",condition="#{condition}",commands={#{command_strings}})
+    %Q(type="if",variable="#{variable}",operand="#{operand}",value=#{value},commands={#{command_strings}})
   end
 end
 
