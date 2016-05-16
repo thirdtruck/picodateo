@@ -6,7 +6,7 @@ grammar PicoDateo
   end
 
   rule commands
-    (speech | speech newline | if_cond | jump | stage_direction | choice | set)+
+    (speech | speech newline | if_cond | jump | stage_direction | choice | set | increment | decrement)+
   end
 
   rule scene
@@ -76,6 +76,18 @@ grammar PicoDateo
   rule set
     (space 'set(' variable_name '=' new_value:([0-9]+) ')' space newline) {
       Assignment.new(capture(:variable_name), capture(:new_value).value.to_i)
+    }
+  end
+
+  rule increment
+    (space 'inc(' variable_name ')' space newline) {
+      Increment.new(capture(:variable_name))
+    }
+  end
+
+  rule decrement
+    (space 'dec(' variable_name ')' space newline) {
+      Decrement.new(capture(:variable_name))
     }
   end
 

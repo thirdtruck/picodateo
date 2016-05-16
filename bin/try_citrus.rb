@@ -36,6 +36,18 @@ Assignment = Struct.new(:variable, :value) do
   end
 end
 
+Increment = Struct.new(:variable, :value) do
+  def to_s
+    %Q(type="increment",variable="#{variable}")
+  end
+end
+
+Decrement = Struct.new(:variable, :value) do
+  def to_s
+    %Q(type="decrement",variable="#{variable}")
+  end
+end
+
 Option = Struct.new(:text, :go_to) do
   def to_s
     %Q({text="#{text}",go_to="#{go_to}"})

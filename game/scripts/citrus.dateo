@@ -1,5 +1,7 @@
 scene(init):
   set(c1=0)
+  set(c2=0)
+  set(c3=10)
   [] welcome to the game
   [robo:show]
   [robo] i hope you enjoy your stay
@@ -13,16 +15,19 @@ scene(init):
 end
 
 scene(first_choice):
+  inc(c1)
   [robo] you made the first choice
   jump(goodbye)
 end
 
 scene(second_choice):
+  inc(c2)
   [robo] you made the second choice
   jump(goodbye)
 end
 
 scene(goodbye):
+  dec(c3)
   [robo] it was nice seeing you
   [robo:hide]
   [] goodbye
