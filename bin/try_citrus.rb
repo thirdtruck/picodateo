@@ -23,16 +23,22 @@ StageDirection = Struct.new(:actor, :instructions) do
   end
 end
 
-Speech = Struct.new(:actor, :text) do
+Speech = Struct.new(:speaker, :text) do
   def to_s
     # TODO: Add explicit escape sequences, if necessary
     escaped_text = text.inspect
-    if actor == :_narrator
+    if speaker == :_narrator
       %Q(type="narration",text=#{escaped_text})
     else
-      %Q(type="speech",speaker="#{actor}",text=#{escaped_text})
+      %Q(type="speech",speaker="#{speaker}",text=#{escaped_text})
     end
   end
+end
+
+def testing(name)
+  require 'pry'; binding.pry
+  puts name, name, name
+  puts 'help!'
 end
 
 Game = Struct.new(:scenes) do

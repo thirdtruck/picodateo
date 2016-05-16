@@ -1,5 +1,5 @@
 scene: init
-  [robo] welcome to the game
+  [] welcome to the game
   [robo:show]
   [robo] i hope you enjoy your stay
   jump(goodbye)
@@ -7,7 +7,7 @@ scene: init
 scene: goodbye
   [robo] it was nice seeing you
   [robo:hide]
-  [robo] goodbye
+  [] goodbye
   if(x)
     [robo] come back again soon
     [robo] we'll look forward to it

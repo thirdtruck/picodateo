@@ -17,18 +17,20 @@ grammar PicoDateo
     }
   end
 
-  rule actor_prompt
-    ('[' actor_name:(chars*) ']') {
-      capture(:actor_name).value
-    }
-  end
-
   rule speech_text
     [^\n]*
   end
 
+  rule narrator
+    ('[]') {
+      # TODO: Figure out why we can't seem to return a symbol from here, instead of capturing '[]'
+    }
+  end
+
   rule actor_name
-    chars*
+    (name:(chars+)) {
+      capture(:name)
+    }
   end
 
   rule stage_direction
@@ -42,8 +44,15 @@ grammar PicoDateo
   end
 
   rule speech
-    (space actor_prompt space speech_text space newline) {
-      Speech.new(capture(:actor_prompt).value.to_sym, capture(:speech_text).value.strip)
+    (space speaker:('[' actor_name ']'|narrator) space speech_text space newline) {
+      narrator = capture(:narrator)
+      if (narrator)
+        speaker = :_narrator
+      else
+        speaker = capture(:actor_name)
+      end
+
+      Speech.new(speaker, capture(:speech_text).value.strip)
     }
   end
 

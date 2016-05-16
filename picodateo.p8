@@ -44,7 +44,7 @@ avatars = {
   }
 }
 
-scenes={init={{type="speech",speaker="robo",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="jump",go_to="goodbye"}},goodbye={{type="speech",speaker="robo",text="it was nice seeing you"},{type="stage_direction",actor="robo",instructions="hide"},{type="speech",speaker="robo",text="goodbye"},{type="if",condition="wip",commands={{type="speech",speaker="robo",text="come back again soon"},{type="speech",speaker="robo",text="we'll look forward to it"}}}}}
+scenes={init={{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="jump",go_to="goodbye"}},goodbye={{type="speech",speaker="robo",text="it was nice seeing you"},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"},{type="if",condition="wip",commands={{type="speech",speaker="robo",text="come back again soon"},{type="speech",speaker="robo",text="we'll look forward to it"}}}}}
 
 function _init()
   variables = {}
