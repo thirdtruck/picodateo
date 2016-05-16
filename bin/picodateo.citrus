@@ -69,11 +69,6 @@ grammar PicoDateo
     }
   end
 
-  rule set2
-    (space 'set(' variable:(chars+) '=' new_value:([0-9]+) ')' space newline) {
-    }
-  end
-
   rule variable_name
     chars (chars | [0-9])*
   end
