@@ -11,6 +11,12 @@ Scene = Struct.new(:name, :commands) do
   end
 end
 
+SceneJump = Struct.new(:scene_name) do
+  def to_s
+    %Q(type="jump",go_to="#{scene_name}")
+  end
+end
+
 Speech = Struct.new(:actor, :text) do
   def to_s
     # TODO: Add explicit escape sequences, if necessary

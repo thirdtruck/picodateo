@@ -1,6 +1,7 @@
 scene: init
   [robo] welcome to the game
   [robo] i hope you enjoy your stay
+  jump(goodbye)
 
 scene: goodbye
   [robo] it was nice seeing you

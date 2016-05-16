@@ -6,7 +6,7 @@ grammar PicoDateo
   end
 
   rule commands
-    (speech | speech newline | if_cond)+
+    (speech | speech newline | if_cond | jump)+
   end
 
   rule scene
@@ -36,6 +36,12 @@ grammar PicoDateo
   rule if_cond
     (space 'if(x)' space newline commands space 'endif' space newline) {
       IfCond.new('wip', capture(:commands).matches.map { |m| m.value })
+    }
+  end
+
+  rule jump
+    (space 'jump(' scene_name ')' space newline) {
+      SceneJump.new(capture(:scene_name))
     }
   end
 

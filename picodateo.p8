@@ -44,7 +44,7 @@ avatars = {
   }
 }
 
-scenes={init={{type="speech",speaker="robo",text="welcome to the game"},{type="speech",speaker="robo",text="i hope you enjoy your stay"}},goodbye={{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",condition="wip",commands={{type="speech",speaker="robo",text="come back again soon"},{type="speech",speaker="robo",text="we'll look forward to it"}}}}}
+scenes={init={{type="speech",speaker="robo",text="welcome to the game"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="jump",go_to="goodbye"}},goodbye={{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",condition="wip",commands={{type="speech",speaker="robo",text="come back again soon"},{type="speech",speaker="robo",text="we'll look forward to it"}}}}}
 
 function _init()
   variables = {}
@@ -89,6 +89,11 @@ function run_command(command)
       command = current_scene[current_command_index]
       current_option = 1
     end
+  elseif (command.type == "jump") then
+    current_command_index = 1
+    current_scene = scenes[command.go_to]
+    command = current_scene[current_command_index]
+    current_option = 1
   elseif (command.type == "stage_direction") then
     if (command.instructions == "show") then
       current_avatar = avatars[command.actor]
