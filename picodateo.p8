@@ -50,8 +50,6 @@ function _init()
   variables = {}
   current_option = 1
   current_scene = scenes.init
-  current_command_index = 1
-  current_command = current_scene[current_command_index]
   current_avatar = nil
   current_hands = {
     left = {
@@ -65,10 +63,47 @@ function _init()
     animation_index = 0,
     speed = 50
   }
+
+  command_stack = {}
+  repopulate_with(command_stack, current_scene)
+  current_command = last(command_stack)
 end
 
-function script_update(script)
+function script_update()
   current_command = run_command(current_command)
+  if (current_command == nil) then
+    game_over()
+  end
+end
+
+function game_over()
+  current_command = {type="game_over"}
+end
+
+-- Caution: Assumes each item in the stack is unique!
+function shift(stack)
+  del(stack, last(stack))
+  return last
+end
+
+-- Note: The additional_items are add'd in the reverse of their original order!
+function unshift_all(stack, additional_items)
+  local i = #(additional_items)
+  while (i > 0) do
+    add(stack, additional_items[i])
+    i -= 1
+  end
+end
+
+function repopulate_with(old_stack, new_stack)
+  while (#(old_stack) > 0) do
+    del(old_stack, old_stack[1])
+  end
+  unshift_all(old_stack, new_stack)
+end
+
+function last(stack)
+  return stack[#(stack)]
 end
 
 function run_command(command)
@@ -84,16 +119,19 @@ function run_command(command)
     end
 
     if (btnp(key.a)) then
-      current_command_index = 1
-      current_scene = scenes[command.options[current_option].go_to]
-      command = current_scene[current_command_index]
+      local go_to = command.options[current_option].go_to
       current_option = 1
+      shift(command_stack)
+      unshift_all(command_stack, scenes[go_to])
+      return last(command_stack)
     end
+
+    return command
   elseif (command.type == "jump") then
-    current_command_index = 1
-    current_scene = scenes[command.go_to]
-    command = current_scene[current_command_index]
     current_option = 1
+
+    repopulate_with(command_stack, scenes[command.go_to])
+    return last(command_stack)
   elseif (command.type == "stage_direction") then
     if (command.instructions == "show") then
       current_avatar = avatars[command.actor]
@@ -102,25 +140,25 @@ function run_command(command)
       current_avatar = nil
     end
     -- assumption: all stage directions should immediately be followed by the next command
-    current_command_index += 1
-    command = current_scene[current_command_index]
+    shift(command_stack)
+    return last(command_stack)
   elseif (command.type == "assignment") then
     variables[command.variable] = command.value
 
-    current_command_index += 1
-    return(run_command(current_scene[current_command_index]))
+    shift(command_stack)
+    return run_command(last(command_stack))
   elseif (command.type == "increment") then
     variables[command.variable] += 1
 
-    current_command_index += 1
-    command = current_scene[current_command_index]
+    shift(command_stack)
+    return run_command(last(command_stack))
   elseif (command.type == "decrement") then
     variables[command.variable] -= 1
 
-    current_command_index += 1
-    command = current_scene[current_command_index]
+    shift(command_stack)
+    return run_command(last(command_stack))
   elseif (command.type == "if") then
-    local op = command.operator
+    local op = command.operand
     local left = variables[command.variable]
     local right = command.value
 
@@ -139,21 +177,27 @@ function run_command(command)
     elseif (op == "!=") then
       if (left ~= right) then execute = true end
     end
-  else
-    if (btnp(key.a)) then
-      if (command.go_to) then
-        current_command_index = 1
-        current_scene = scenes[command.go_to]
-        command = current_scene[current_command_index]
-      else
-        current_command_index += 1
-        command = current_scene[current_command_index]
-      end
-      current_option = 1
-    end
-  end
 
-  return command
+    shift(command_stack)
+
+    if (execute) then
+      unshift_all(command_stack, command.commands)
+    end
+
+    return run_command(last(command_stack))
+  elseif (command.type == "narration" or command.type == "speech") then
+    if (btnp(key.a)) then
+      current_option = 1
+      shift(command_stack)
+      return last(command_stack)
+    end
+
+    return command
+  elseif (command.type == "game_over") then
+    return command
+  else
+    printh("unrecognized command type: "..command.type)
+  end
 end
 
 function hands_update(hands)
@@ -165,8 +209,8 @@ function hands_update(hands)
 end
 
 function _update()
+  script_update()
   hands_update(current_hands)
-  script_update(current_script)
 end
 
 function draw_script(script)
@@ -189,6 +233,8 @@ function draw_script(script)
       end
       i += 1
     end
+  elseif(current_command.type == "game_over") then
+    print("game over")
   end
 end
 
