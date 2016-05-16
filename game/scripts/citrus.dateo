@@ -9,14 +9,17 @@ scene(init):
     end
   end
   jump(goodbye)
+end
 
 scene(first_choice):
   [robo] you made the first choice
   jump(goodbye)
+end
 
 scene(second_choice):
   [robo] you made the second choice
   jump(goodbye)
+end
 
 scene(goodbye):
   [robo] it was nice seeing you
@@ -25,4 +28,5 @@ scene(goodbye):
   if(x)
     [robo] come back again soon
     [robo] we'll look forward to it
-  endif
+  end
+end
