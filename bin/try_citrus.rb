@@ -17,6 +17,12 @@ SceneJump = Struct.new(:scene_name) do
   end
 end
 
+StageDirection = Struct.new(:actor, :instructions) do
+  def to_s
+    %Q(type="stage_direction",actor="#{actor}",instructions="#{instructions}")
+  end
+end
+
 Speech = Struct.new(:actor, :text) do
   def to_s
     # TODO: Add explicit escape sequences, if necessary

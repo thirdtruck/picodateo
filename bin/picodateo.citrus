@@ -6,7 +6,7 @@ grammar PicoDateo
   end
 
   rule commands
-    (speech | speech newline | if_cond | jump)+
+    (speech | speech newline | if_cond | jump | stage_direction)+
   end
 
   rule scene
@@ -25,6 +25,20 @@ grammar PicoDateo
 
   rule speech_text
     [^\n]*
+  end
+
+  rule actor_name
+    chars*
+  end
+
+  rule stage_direction
+    (space '[' actor_name ':' instructions ']' space newline) {
+      StageDirection.new(capture(:actor_name), capture(:instructions))
+    }
+  end
+
+  rule instructions
+    chars*
   end
 
   rule speech
