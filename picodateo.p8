@@ -79,13 +79,6 @@ function _init()
   current_command = last(command_stack)
 end
 
-function script_update()
-  current_command = run_command(current_command)
-  if (current_command == nil) then
-    game_over()
-  end
-end
-
 function load_save_file()
   current_scene_id = dget(0)
 
@@ -105,10 +98,6 @@ function load_save_file()
     variables_before_jump[variable] = saved_value
     printh("var "..variable.."="..(variables[variable] or "nil"))
   end
-end
-
-function game_over()
-  current_command = {type="game_over"}
 end
 
 -- Caution: Assumes each item in the stack is unique!
@@ -145,7 +134,7 @@ function last(stack)
 end
 
 function game_over(command_stack_1, command)
-  return command
+  return {type="game_over"}
 end
 
 function save_point(command_stack_1, comand)
@@ -296,7 +285,12 @@ function hands_update(hands)
 end
 
 function _update()
-  script_update()
+  current_command = run_command(current_command)
+  if (current_command == nil) then
+    current_command =  game_over(command_stack, current_command)
+    return
+  end
+
   hands_update(current_hands)
 end
 
