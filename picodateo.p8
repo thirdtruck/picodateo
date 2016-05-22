@@ -17,10 +17,6 @@ screen = {
   height = 128
 }
 
-function not_implemented()
-  printh "not implemented"
-end
-
 menu_x = 0
 menu_y = 40
 menu_col = 7
