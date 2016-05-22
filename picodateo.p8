@@ -21,6 +21,8 @@ menu_x = 0
 menu_y = 40
 menu_col = 7
 
+avatar_ids = {robo=1}
+avatar_names = {"robo"}
 avatars = {
   robo = {
     cel = {
@@ -42,7 +44,8 @@ avatars = {
 
 save_data_structure = {
   scene_id = 0,
-  variable_offset = 0
+  avatar_id = 1,
+  variable_offset = 1
 }
 
 variable_declarations={"c1","c2","c3",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
@@ -91,7 +94,7 @@ end
 function load_save_file(game)
   game.scene_id = dget(save_data_structure.scene_id)
 
-  printh("loading scene id "..game.scene_id)
+  printh("loaded scene id "..game.scene_id)
 
   if (game.scene_id == 0) then -- empty save file; scene IDs start at 1
     game.scene_id = scene_ids["init"]
@@ -99,6 +102,17 @@ function load_save_file(game)
   end
 
   printh("loaded scene name: "..scene_names[game.scene_id])
+
+  local avatar_id = dget(save_data_structure.avatar_id)
+
+  printh("loaded avatar id "..avatar_id)
+
+  if(avatar_id == 0) then -- narrator; avatar IDs start at 1
+    game.avatar_name = nil
+    printh("loaded avatar name: "..game.avatar_name)
+  else
+    game.avatar_name = avatar_names[avatar_id]
+  end
 
   for id,variable in pairs(variable_declarations) do
     local position = id+save_data_structure.variable_offset
@@ -110,8 +124,13 @@ function load_save_file(game)
 end
 
 function save_game(game)
+  local avatar_id = avatar_ids[game.avatar_name]
+
   dset(save_data_structure.scene_id, game.scene_id)
   printh("saved scene id "..game.scene_id.. " to "..save_data_structure.scene_id)
+
+  dset(save_data_structure.avatar_id, avatar_ids[game.avatar_name])
+  printh("saved avatar id "..avatar_id.. " to "..save_data_structure.avatar_id)
 
   for id,variable in pairs(variable_declarations) do
     local position = id+save_data_structure.variable_offset
