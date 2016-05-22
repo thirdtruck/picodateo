@@ -53,9 +53,9 @@ function _init()
   current_game = {
     variables = {},
     variables_before_jump = {},
-    scene_id = nil
+    scene_id = nil,
+    option_id = 1
   }
-  current_option = 1
   current_scene = scenes.init
   current_avatar = nil
   current_hands = {
@@ -86,7 +86,7 @@ function load_save_file(game)
   printh("scene id "..game.scene_id)
 
   if (game.scene_id == 0) then -- empty save file; scene IDs start at 1
-    return
+    return game
   end
 
   printh("scene name "..scene_names[game.scene_id])
@@ -152,19 +152,19 @@ function update_save_point(game, command_stack, command)
 end
 
 function update_choice(game, command_stack, command)
-  if (btnp(key.up)) current_option -= 1
-  if (btnp(key.down)) current_option += 1
+  if (btnp(key.up)) game.option_id -= 1
+  if (btnp(key.down)) game.option_id += 1
 
   -- wrap around
-  if (current_option > #(command.options)) then
-    current_option = 1
-  elseif (current_option < 1) then
-    current_option = #(command.options)
+  if (game.option_id > #(command.options)) then
+    game.option_id = 1
+  elseif (game.option_id < 1) then
+    game.option_id = #(command.options)
   end
 
   if (btnp(key.a)) then
-    local go_to = command.options[current_option].go_to
-    current_option = 1
+    local go_to = command.options[game.option_id].go_to
+    game.option_id = 1
     shift(command_stack)
     unshift_all(command_stack, scenes[go_to])
     return command_stack
@@ -238,7 +238,7 @@ end
 
 function update_message(game, command_stack, command) -- TODO: Better name
   if (btnp(key.a)) then
-    current_option = 1
+    game.option_id = 1
     shift(command_stack)
     return command_stack
   end
@@ -247,7 +247,7 @@ function update_message(game, command_stack, command) -- TODO: Better name
 end
 
 function update_jump(game, command_stack, command)
-  current_option = 1
+  game.option_id = 1
 
   repopulate_with(command_stack, scenes[command.go_to])
   copy_to(game.variables, game.variables_before_jump)
@@ -255,31 +255,31 @@ function update_jump(game, command_stack, command)
   return command_stack
 end
 
-function draw_message_setup(command)
+function draw_message_setup(game, command)
   color(7)
 
   print("", menu_x, menu_y, menu_col)
 end
 
-function draw_narration(command)
+function draw_narration(game, command)
   draw_message_setup(command)
 
   print(command.text)
 end
 
-function draw_speech(command)
+function draw_speech(game, command)
   draw_message_setup(command)
 
   print(command.speaker..": "..command.text)
 end
 
-function draw_choice(command)
-  draw_message_setup(command)
+function draw_choice(game, command)
+  draw_message_setup(game, command)
 
   local i = 1
   while i <= #(command.options) do
     local option = command.options[i]
-    if i == current_option then
+    if i == game.option_id then
       print("> "..option.text)
     else
       print("  "..option.text)
@@ -288,8 +288,8 @@ function draw_choice(command)
   end
 end
 
-function draw_game_over(command)
-  draw_message_setup(command)
+function draw_game_over(game, command)
+  draw_message_setup(game, command)
 
   print("game over")
 end
@@ -346,14 +346,6 @@ function _update()
   hands_update(current_hands)
 end
 
-function draw_script(script)
-  local command = last(current_command_stack)
-  if(command_draw_lambdas[command.type]) then
-    command_draw_lambdas[command.type](command)
-    return
-  end
-end
-
 function draw_avatar(avatar)
   map(avatar.cel.x, avatar.cel.y, 20, 20, avatar.width, avatar.height)
 end
@@ -373,7 +365,10 @@ end
 function _draw()
   cls()
 
-  draw_script(current_script)
+  local command = last(current_command_stack)
+  if(command_draw_lambdas[command.type]) then
+    command_draw_lambdas[command.type](current_game, command)
+  end
 
   if current_avatar then
     draw_avatar(current_avatar)
