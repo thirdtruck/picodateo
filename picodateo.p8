@@ -64,12 +64,14 @@ function _init()
   }
 
   current_game = {
+    started = false,
     variables = {},
     variables_before_jump = {},
     scene_id = nil,
     option_id = 1,
     avatar_name = nil,
-    hands = starting_hands
+    hands = starting_hands,
+    command_stack = {}
   }
 
   data_loaded = cartdata("picodateo_1")
@@ -77,9 +79,10 @@ function _init()
     current_game = load_save_file(current_game)
   end
 
-  current_command_stack = {}
   local starting_scene = scenes[scene_names[current_game.scene_id]]
-  repopulate_with(current_command_stack, starting_scene)
+  repopulate_with(current_game.command_stack, starting_scene)
+
+  current_game.started = true
 end
 
 function load_save_file(game)
@@ -137,22 +140,21 @@ function last(stack)
   return stack[#(stack)]
 end
 
-function update_game_over(game, command_stack, command)
-  return {{},{type="game_over"}}
+function update_game_over(game, command)
+  repopulate_with(game.command_stack, {{type="game_over"}})
 end
 
-function update_save_point(game, command_stack, command)
+function update_save_point(game, command)
   dset(0, game.scene_id)
   for id,variable in pairs(variable_declarations) do
     dset(id, game.variables_before_jump[variable])
   end
   printh("Progress saved.")
 
-  shift(command_stack)
-  return command_stack
+  shift(game.command_stack)
 end
 
-function update_choice(game, command_stack, command)
+function update_choice(game, command)
   if (btnp(key.up)) game.option_id -= 1
   if (btnp(key.down)) game.option_id += 1
 
@@ -166,15 +168,12 @@ function update_choice(game, command_stack, command)
   if (btnp(key.a)) then
     local go_to = command.options[game.option_id].go_to
     game.option_id = 1
-    shift(command_stack)
-    unshift_all(command_stack, scenes[go_to])
-    return command_stack
+    shift(game.command_stack)
+    unshift_all(game.command_stack, scenes[go_to])
   end
-
-  return command_stack
 end
 
-function update_stage_direction(game, command_stack, command)
+function update_stage_direction(game, command)
   if (command.instructions == "show") then
     game.avatar_name = command.actor
   end
@@ -182,32 +181,31 @@ function update_stage_direction(game, command_stack, command)
     game.avatar_name = nil
   end
   -- assumption: all stage directions should immediately be followed by the next command
-  shift(command_stack)
-  return command_stack
+  shift(game.command_stack)
 end
 
-function update_assignment(game, command_stack, command)
+function update_assignment(game, command)
   game.variables[command.variable] = command.value
 
-  shift(command_stack)
-  return run_command(game, command_stack)
+  shift(game.command_stack)
+  run_command(game)
 end
 
-function update_increment(game, command_stack, command)
+function update_increment(game, command)
   game.variables[command.variable] += 1
 
-  shift(command_stack)
-  return run_command(game, command_stack)
+  shift(game.command_stack)
+  run_command(game)
 end
 
-function update_decrement(game, command_stack, command)
+function update_decrement(game, command)
   game.variables[command.variable] -= 1
 
-  shift(command_stack)
-  return run_command(game, command_stack)
+  shift(game.command_stack)
+  run_command(game)
 end
 
-function update_if_cond(game, command_stack, command)
+function update_if_cond(game, command)
   local op = command.operand
   local left = game.variables[command.variable]
   local right = command.value
@@ -228,32 +226,28 @@ function update_if_cond(game, command_stack, command)
     if (left ~= right) then execute = true end
   end
 
-  shift(command_stack)
+  shift(game.command_stack)
 
   if (execute) then
-    unshift_all(command_stack, command.commands)
+    unshift_all(game.command_stack, command.commands)
   end
 
-  return run_command(game, command_stack)
+  run_command(game)
 end
 
-function update_message(game, command_stack, command) -- TODO: Better name
+function update_message(game, command) -- TODO: Better name
   if (btnp(key.a)) then
     game.option_id = 1
-    shift(command_stack)
-    return command_stack
+    shift(game.command_stack)
   end
-
-  return command_stack
 end
 
-function update_jump(game, command_stack, command)
+function update_jump(game, command)
   game.option_id = 1
 
-  repopulate_with(command_stack, scenes[command.go_to])
+  repopulate_with(game.command_stack, scenes[command.go_to])
   copy_to(game.variables, game.variables_before_jump)
   game.scene_id = scene_ids[command.go_to]
-  return command_stack
 end
 
 function hands_update(hands)
@@ -340,33 +334,38 @@ command_draw_lambdas = {
   game_over=draw_game_over
 }
 
-function run_command(game, command_stack)
-  local command = last(command_stack)
+function run_command(game)
+  local command = last(game.command_stack)
 
-  if (command_update_lambdas[command.type]) then
-    return command_update_lambdas[command.type](game, current_command_stack, command)
+  if (#(game.command_stack) == 0) then
+    update_game_over(game, nil)
+  elseif (command_update_lambdas[command.type]) then
+    command_update_lambdas[command.type](game, command)
   elseif (command.type == "if") then -- because "if" is not a valid table key
-    return command_update_lambdas["if_cond"](game, current_command_stack, command)
+    command_update_lambdas["if_cond"](game, command)
   else
     printh("unrecognized command type: "..command.type)
+  end
+
+  -- check again in case the last command emptied out the stack
+  if (#(game.command_stack) == 0) then
+    update_game_over(game, nil)
   end
 end
 
 function _update()
-  current_command_stack = run_command(current_game, current_command_stack)
+  if (current_game.started) then
+    run_command(current_game)
 
-  if (last(current_command_stack) == nil) then
-    current_command_stack = update_game_over(current_command_stack, nil)
-    return
+    hands_update(current_game.hands)
   end
-
-  hands_update(current_game.hands)
 end
 
 function _draw()
   cls()
 
-  local command = last(current_command_stack)
+  local command = last(current_game.command_stack)
+
   if(command_draw_lambdas[command.type]) then
     command_draw_lambdas[command.type](current_game, command)
   end
