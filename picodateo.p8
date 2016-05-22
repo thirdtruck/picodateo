@@ -88,12 +88,14 @@ end
 
 function load_save_file()
   current_scene_id = dget(0)
+
   printh("scene id "..current_scene_id)
-  printh("scene name "..scene_names[current_scene_id])
 
   if (current_scene_id == 0) then -- empty save file; scene IDs start at 1
     return
   end
+
+  printh("scene name "..scene_names[current_scene_id])
 
   current_scene = scenes[scene_names[current_scene_id]]
 
@@ -142,106 +144,144 @@ function last(stack)
   return stack[#(stack)]
 end
 
-function run_command(command)
-  if (command.type == "choice") then
-    if (btnp(key.up)) current_option -= 1
-    if (btnp(key.down)) current_option += 1
+function game_over(command_stack_1, command)
+  return command
+end
 
-    -- wrap around
-    if (current_option > #(command.options)) then
-      current_option = 1
-    elseif (current_option < 1) then
-      current_option = #(command.options)
-    end
+function save_point(command_stack_1, comand)
+  dset(0, current_scene_id)
+  for id,variable in pairs(variable_declarations) do
+    dset(id, variables[variable])
+  end
+  printh("Progress saved.")
 
-    if (btnp(key.a)) then
-      local go_to = command.options[current_option].go_to
-      current_option = 1
-      shift(command_stack)
-      unshift_all(command_stack, scenes[go_to])
-      return last(command_stack)
-    end
+  shift(command_stack)
+  return last(command_stack)
+end
 
-    return command
-  elseif (command.type == "jump") then
+function choice(command_stack_1, command)
+  if (btnp(key.up)) current_option -= 1
+  if (btnp(key.down)) current_option += 1
+
+  -- wrap around
+  if (current_option > #(command.options)) then
     current_option = 1
+  elseif (current_option < 1) then
+    current_option = #(command.options)
+  end
 
-    repopulate_with(command_stack, scenes[command.go_to])
-    copy_to(variables, variables_before_jump)
-    current_scene_id = scene_ids[command.go_to]
+  if (btnp(key.a)) then
+    local go_to = command.options[current_option].go_to
+    current_option = 1
+    shift(command_stack)
+    unshift_all(command_stack, scenes[go_to])
     return last(command_stack)
-  elseif (command.type == "stage_direction") then
-    if (command.instructions == "show") then
-      current_avatar = avatars[command.actor]
-    end
-    if (command.instructions == "hide") then
-      current_avatar = nil
-    end
-    -- assumption: all stage directions should immediately be followed by the next command
+  end
+
+  return command
+end
+
+function stage_direction(command_stack_1, command)
+  if (command.instructions == "show") then
+    current_avatar = avatars[command.actor]
+  end
+  if (command.instructions == "hide") then
+    current_avatar = nil
+  end
+  -- assumption: all stage directions should immediately be followed by the next command
+  shift(command_stack)
+  return last(command_stack)
+end
+
+function assignment(command_stack_1, command)
+  variables[command.variable] = command.value
+
+  shift(command_stack)
+  return run_command(last(command_stack))
+end
+
+function increment(command_stack_1, command)
+  variables[command.variable] += 1
+
+  shift(command_stack)
+  return run_command(last(command_stack))
+end
+
+function decrement(command_stack_1, command)
+  variables[command.variable] -= 1
+
+  shift(command_stack)
+  return run_command(last(command_stack))
+end
+
+function if_cond(command_stack_1, command)
+  local op = command.operand
+  local left = variables[command.variable]
+  local right = command.value
+
+  local execute = false
+
+  if (op == "=") then
+    if (left == right) then execute = true end
+  elseif (op == "<") then
+    if (left < right) then execute = true end
+  elseif (op == "<=") then
+    if (left <= right) then execute = true end
+  elseif (op == ">") then
+    if (left > right) then execute = true end
+  elseif (op == ">=") then
+    if (left >= right) then execute = true end
+  elseif (op == "!=") then
+    if (left ~= right) then execute = true end
+  end
+
+  shift(command_stack)
+
+  if (execute) then
+    unshift_all(command_stack, command.commands)
+  end
+
+  return run_command(last(command_stack))
+end
+
+function message(command_stack_1, command) -- TODO: Better name
+  if (btnp(key.a)) then
+    current_option = 1
     shift(command_stack)
     return last(command_stack)
-  elseif (command.type == "assignment") then
-    variables[command.variable] = command.value
+  end
 
-    shift(command_stack)
-    return run_command(last(command_stack))
-  elseif (command.type == "increment") then
-    variables[command.variable] += 1
+  return command
+end
 
-    shift(command_stack)
-    return run_command(last(command_stack))
-  elseif (command.type == "decrement") then
-    variables[command.variable] -= 1
+function jump(command_stack_1, command)
+  current_option = 1
 
-    shift(command_stack)
-    return run_command(last(command_stack))
-  elseif (command.type == "if") then
-    local op = command.operand
-    local left = variables[command.variable]
-    local right = command.value
+  repopulate_with(command_stack, scenes[command.go_to])
+  copy_to(variables, variables_before_jump)
+  current_scene_id = scene_ids[command.go_to]
+  return last(command_stack)
+end
 
-    local execute = false
+command_lambdas = {
+  game_over=game_over,
+  save_point=save_point,
+  choice=choice,
+  stage_direction=stage_direction,
+  assignment=assignment,
+  increment=increment,
+  decrement=decrement,
+  if_cond=if_cond,
+  narration=message,
+  speech=message,
+  jump=jump
+}
 
-    if (op == "=") then
-      if (left == right) then execute = true end
-    elseif (op == "<") then
-      if (left < right) then execute = true end
-    elseif (op == "<=") then
-      if (left <= right) then execute = true end
-    elseif (op == ">") then
-      if (left > right) then execute = true end
-    elseif (op == ">=") then
-      if (left >= right) then execute = true end
-    elseif (op == "!=") then
-      if (left ~= right) then execute = true end
-    end
-
-    shift(command_stack)
-
-    if (execute) then
-      unshift_all(command_stack, command.commands)
-    end
-
-    return run_command(last(command_stack))
-  elseif (command.type == "narration" or command.type == "speech") then
-    if (btnp(key.a)) then
-      current_option = 1
-      shift(command_stack)
-      return last(command_stack)
-    end
-
-    return command
-  elseif (command.type == "save_point") then
-    dset(0, current_scene_id)
-    for id,variable in pairs(variable_declarations) do
-      dset(id, variables[variable])
-    end
-    printh("Progress saved.")
-
-    shift(command_stack)
-    return last(command_stack)
-  elseif (command.type == "game_over") then
-    return command
+function run_command(command)
+  if (command_lambdas[command.type]) then
+    return command_lambdas[command.type](command_stack, command)
+  elseif (command.type == "if") then -- because "if" is not a valid table key
+    return command_lambdas["if_cond"](command_stack, command)
   else
     printh("unrecognized command type: "..command.type)
   end
