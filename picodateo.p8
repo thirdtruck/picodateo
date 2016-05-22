@@ -256,6 +256,14 @@ function update_jump(game, command_stack, command)
   return command_stack
 end
 
+function hands_update(hands)
+  hands.animation_index += 1
+  if(hands.animation_index > hands.speed) hands.animation_index = 0
+
+  hands.left.offset.y = flr(sin(hands.animation_index/hands.speed)*3)
+  hands.right.offset.y = flr(sin((-1*hands.animation_index/hands.speed))*3)
+end
+
 function draw_message_setup(game, command)
   color(7)
 
@@ -295,6 +303,22 @@ function draw_game_over(game, command)
   print("game over")
 end
 
+function draw_avatar(avatar)
+  map(avatar.cel.x, avatar.cel.y, 20, 20, avatar.width, avatar.height)
+end
+
+function draw_hand(hand, avatar)
+  map(avatar.hand.cel.x, avatar.hand.cel.y,
+      hand.x + hand.offset.x,
+      hand.y + hand.offset.y,
+      avatar.hand.width, avatar.hand.height)
+end
+
+function draw_hands(hands, avatar)
+  draw_hand(hands.left, avatar)
+  draw_hand(hands.right, avatar)
+end
+
 command_update_lambdas = {
   game_over=update_game_over,
   save_point=update_save_point,
@@ -328,14 +352,6 @@ function run_command(game, command_stack)
   end
 end
 
-function hands_update(hands)
-  hands.animation_index += 1
-  if(hands.animation_index > hands.speed) hands.animation_index = 0
-
-  hands.left.offset.y = flr(sin(hands.animation_index/hands.speed)*3)
-  hands.right.offset.y = flr(sin((-1*hands.animation_index/hands.speed))*3)
-end
-
 function _update()
   current_command_stack = run_command(current_game, current_command_stack)
 
@@ -345,22 +361,6 @@ function _update()
   end
 
   hands_update(current_game.hands)
-end
-
-function draw_avatar(avatar)
-  map(avatar.cel.x, avatar.cel.y, 20, 20, avatar.width, avatar.height)
-end
-
-function draw_hand(hand, avatar)
-  map(avatar.hand.cel.x, avatar.hand.cel.y,
-      hand.x + hand.offset.x,
-      hand.y + hand.offset.y,
-      avatar.hand.width, avatar.hand.height)
-end
-
-function draw_hands(hands, avatar)
-  draw_hand(hands.left, avatar)
-  draw_hand(hands.right, avatar)
 end
 
 function _draw()
