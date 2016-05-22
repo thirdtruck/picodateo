@@ -33,9 +33,9 @@ scene(second_choice):
 end
 
 scene(goodbye):
+  save_point()
   dec(c3)
   [robo] it was nice seeing you
-  save_point()
   if(c1=1)
     [robo] come back again soon
   end
