@@ -54,9 +54,9 @@ function _init()
     variables = {},
     variables_before_jump = {},
     scene_id = nil,
-    option_id = 1
+    option_id = 1,
+    avatar_name = nil
   }
-  current_avatar = nil
   current_hands = {
     left = {
       x = 16, y = 24,
@@ -174,10 +174,10 @@ end
 
 function update_stage_direction(game, command_stack, command)
   if (command.instructions == "show") then
-    current_avatar = avatars[command.actor]
+    game.avatar_name = command.actor
   end
   if (command.instructions == "hide") then
-    current_avatar = nil
+    game.avatar_name = nil
   end
   -- assumption: all stage directions should immediately be followed by the next command
   shift(command_stack)
@@ -369,10 +369,11 @@ function _draw()
     command_draw_lambdas[command.type](current_game, command)
   end
 
-  if current_avatar then
-    draw_avatar(current_avatar)
+  if current_game.avatar_name then
+    local avatar = avatars[current_game.avatar_name]
+    draw_avatar(avatar)
 
-    draw_hands(current_hands, current_avatar)
+    draw_hands(current_hands, avatar)
   end
 end
 __gfx__
