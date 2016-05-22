@@ -77,6 +77,8 @@ function _init()
   data_loaded = cartdata("picodateo_1")
   if(data_loaded) then
     current_game = load_save_file(current_game)
+  else
+    current_game.scene_id = scene_ids["init"]
   end
 
   local starting_scene = scenes[scene_names[current_game.scene_id]]
