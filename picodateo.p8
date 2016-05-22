@@ -50,8 +50,10 @@ scene_names={"init","first_choice","second_choice","goodbye",nil,nil,nil,nil,nil
 scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="save_point"},{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",variable="c1",operand="=",value=1,commands={{type="speech",speaker="robo",text="first choice? good choice"},{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="speech",speaker="robo",text="second choice? good choice"},{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
 
 function _init()
-  variables = {}
-  variables_before_jump = {}
+  current_game = {
+    variables = {},
+    variables_before_jump = {}
+  }
   current_scene_id = nil
   current_option = 1
   current_scene = scenes.init
@@ -71,14 +73,14 @@ function _init()
 
   data_loaded = cartdata("picodateo_1")
   if(data_loaded) then
-    load_save_file()
+    current_game = load_save_file(current_game)
   end
 
   current_command_stack = {}
   repopulate_with(current_command_stack, current_scene)
 end
 
-function load_save_file()
+function load_save_file(game)
   current_scene_id = dget(0)
 
   printh("scene id "..current_scene_id)
@@ -93,10 +95,12 @@ function load_save_file()
 
   for id,variable in pairs(variable_declarations) do
     saved_value = dget(id)
-    variables[variable] = saved_value
-    variables_before_jump[variable] = saved_value
-    printh("var "..variable.."="..(variables[variable] or "nil"))
+    game.variables[variable] = saved_value
+    game.variables_before_jump[variable] = saved_value
+    printh("var "..variable.."="..(game.variables[variable] or "nil"))
   end
+
+  return game
 end
 
 -- Caution: Assumes each item in the stack is unique!
@@ -132,14 +136,14 @@ function last(stack)
   return stack[#(stack)]
 end
 
-function update_game_over(command_stack, command)
+function update_game_over(game, command_stack, command)
   return {{},{type="game_over"}}
 end
 
-function update_save_point(command_stack, command)
+function update_save_point(game, command_stack, command)
   dset(0, current_scene_id)
   for id,variable in pairs(variable_declarations) do
-    dset(id, variables[variable])
+    dset(id, game.variables[variable])
   end
   printh("Progress saved.")
 
@@ -147,7 +151,7 @@ function update_save_point(command_stack, command)
   return command_stack
 end
 
-function update_choice(command_stack, command)
+function update_choice(game, command_stack, command)
   if (btnp(key.up)) current_option -= 1
   if (btnp(key.down)) current_option += 1
 
@@ -169,7 +173,7 @@ function update_choice(command_stack, command)
   return command_stack
 end
 
-function update_stage_direction(command_stack, command)
+function update_stage_direction(game, command_stack, command)
   if (command.instructions == "show") then
     current_avatar = avatars[command.actor]
   end
@@ -181,30 +185,30 @@ function update_stage_direction(command_stack, command)
   return command_stack
 end
 
-function update_assignment(command_stack, command)
-  variables[command.variable] = command.value
+function update_assignment(game, command_stack, command)
+  game.variables[command.variable] = command.value
 
   shift(command_stack)
-  return run_command(command_stack)
+  return run_command(game, command_stack)
 end
 
-function update_increment(command_stack, command)
-  variables[command.variable] += 1
+function update_increment(game, command_stack, command)
+  game.variables[command.variable] += 1
 
   shift(command_stack)
-  return run_command(command_stack)
+  return run_command(game, command_stack)
 end
 
-function update_decrement(command_stack, command)
-  variables[command.variable] -= 1
+function update_decrement(game, command_stack, command)
+  game.variables[command.variable] -= 1
 
   shift(command_stack)
-  return run_command(command_stack)
+  return run_command(game, command_stack)
 end
 
-function update_if_cond(command_stack, command)
+function update_if_cond(game, command_stack, command)
   local op = command.operand
-  local left = variables[command.variable]
+  local left = game.variables[command.variable]
   local right = command.value
 
   local execute = false
@@ -229,10 +233,10 @@ function update_if_cond(command_stack, command)
     unshift_all(command_stack, command.commands)
   end
 
-  return run_command(command_stack)
+  return run_command(game, command_stack)
 end
 
-function update_message(command_stack, command) -- TODO: Better name
+function update_message(game, command_stack, command) -- TODO: Better name
   if (btnp(key.a)) then
     current_option = 1
     shift(command_stack)
@@ -242,11 +246,11 @@ function update_message(command_stack, command) -- TODO: Better name
   return command_stack
 end
 
-function update_jump(command_stack, command)
+function update_jump(game, command_stack, command)
   current_option = 1
 
   repopulate_with(command_stack, scenes[command.go_to])
-  copy_to(variables, variables_before_jump)
+  copy_to(game.variables, game.variables_before_jump)
   current_scene_id = scene_ids[command.go_to]
   return command_stack
 end
@@ -311,13 +315,13 @@ command_draw_lambdas = {
   game_over=draw_game_over
 }
 
-function run_command(command_stack)
+function run_command(game, command_stack)
   local command = last(command_stack)
 
   if (command_update_lambdas[command.type]) then
-    return command_update_lambdas[command.type](current_command_stack, command)
+    return command_update_lambdas[command.type](game, current_command_stack, command)
   elseif (command.type == "if") then -- because "if" is not a valid table key
-    return command_update_lambdas["if_cond"](current_command_stack, command)
+    return command_update_lambdas["if_cond"](game, current_command_stack, command)
   else
     printh("unrecognized command type: "..command.type)
   end
@@ -332,7 +336,7 @@ function hands_update(hands)
 end
 
 function _update()
-  current_command_stack = run_command(current_command_stack)
+  current_command_stack = run_command(current_game, current_command_stack)
 
   if (last(current_command_stack) == nil) then
     current_command_stack = update_game_over(current_command_stack, nil)
