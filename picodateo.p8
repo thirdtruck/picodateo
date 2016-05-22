@@ -111,7 +111,7 @@ end
 
 function save_game(game)
   dset(save_data_structure.scene_id, game.scene_id)
-  printh('saved scene id '..game.scene_id.. ' to '..save_data_structure.scene_id)
+  printh("saved scene id "..game.scene_id.. " to "..save_data_structure.scene_id)
 
   for id,variable in pairs(variable_declarations) do
     local position = id+save_data_structure.variable_offset
@@ -120,7 +120,7 @@ function save_game(game)
       value = 0
     end
     dset(position, value)
-    printh('saved var '..variable..'='..value..' to '..position)
+    printh("saved var "..variable.."="..value.." to "..position)
   end
 end
 
