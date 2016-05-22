@@ -252,6 +252,45 @@ function update_jump(command_stack_1, command)
   return last(command_stack)
 end
 
+function draw_message_setup(command)
+  color(7)
+
+  print("", menu_x, menu_y, menu_col)
+end
+
+function draw_narration(command)
+  draw_message_setup(command)
+
+  print(command.text)
+end
+
+function draw_speech(command)
+  draw_message_setup(command)
+
+  print(command.speaker..": "..command.text)
+end
+
+function draw_choice(command)
+  draw_message_setup(command)
+
+  local i = 1
+  while i <= #(command.options) do
+    local option = command.options[i]
+    if i == current_option then
+      print("> "..option.text)
+    else
+      print("  "..option.text)
+    end
+    i += 1
+  end
+end
+
+function draw_game_over(command)
+  draw_message_setup(command)
+
+  print("game over")
+end
+
 command_update_lambdas = {
   game_over=update_game_over,
   save_point=update_save_point,
@@ -264,6 +303,13 @@ command_update_lambdas = {
   narration=update_message,
   speech=update_message,
   jump=update_jump
+}
+
+command_draw_lambdas = {
+  narration=draw_narration,
+  speech=draw_speech,
+  choice=draw_choice,
+  game_over=draw_game_over
 }
 
 function run_command(command)
@@ -295,27 +341,9 @@ function _update()
 end
 
 function draw_script(script)
-  color(7)
-
-  print("", menu_x, menu_y, menu_col)
-
-  if(current_command.type == "narration") then
-    print(current_command.text)
-  elseif(current_command.type == "speech") then
-    print(current_command.speaker..": "..current_command.text)
-  elseif(current_command.type == "choice") then
-    local i = 1
-    while i <= #(current_command.options) do
-      local option = current_command.options[i]
-      if i == current_option then
-        print("> "..option.text)
-      else
-        print("  "..option.text)
-      end
-      i += 1
-    end
-  elseif(current_command.type == "game_over") then
-    print("game over")
+  if(command_draw_lambdas[current_command.type]) then
+    command_draw_lambdas[current_command.type](current_command)
+    return
   end
 end
 
