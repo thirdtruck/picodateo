@@ -133,11 +133,11 @@ function last(stack)
   return stack[#(stack)]
 end
 
-function game_over(command_stack_1, command)
+function update_game_over(command_stack_1, command)
   return {type="game_over"}
 end
 
-function save_point(command_stack_1, comand)
+function update_save_point(command_stack_1, comand)
   dset(0, current_scene_id)
   for id,variable in pairs(variable_declarations) do
     dset(id, variables[variable])
@@ -148,7 +148,7 @@ function save_point(command_stack_1, comand)
   return last(command_stack)
 end
 
-function choice(command_stack_1, command)
+function update_choice(command_stack_1, command)
   if (btnp(key.up)) current_option -= 1
   if (btnp(key.down)) current_option += 1
 
@@ -170,7 +170,7 @@ function choice(command_stack_1, command)
   return command
 end
 
-function stage_direction(command_stack_1, command)
+function update_stage_direction(command_stack_1, command)
   if (command.instructions == "show") then
     current_avatar = avatars[command.actor]
   end
@@ -182,28 +182,28 @@ function stage_direction(command_stack_1, command)
   return last(command_stack)
 end
 
-function assignment(command_stack_1, command)
+function update_assignment(command_stack_1, command)
   variables[command.variable] = command.value
 
   shift(command_stack)
   return run_command(last(command_stack))
 end
 
-function increment(command_stack_1, command)
+function update_increment(command_stack_1, command)
   variables[command.variable] += 1
 
   shift(command_stack)
   return run_command(last(command_stack))
 end
 
-function decrement(command_stack_1, command)
+function update_decrement(command_stack_1, command)
   variables[command.variable] -= 1
 
   shift(command_stack)
   return run_command(last(command_stack))
 end
 
-function if_cond(command_stack_1, command)
+function update_if_cond(command_stack_1, command)
   local op = command.operand
   local left = variables[command.variable]
   local right = command.value
@@ -233,7 +233,7 @@ function if_cond(command_stack_1, command)
   return run_command(last(command_stack))
 end
 
-function message(command_stack_1, command) -- TODO: Better name
+function update_message(command_stack_1, command) -- TODO: Better name
   if (btnp(key.a)) then
     current_option = 1
     shift(command_stack)
@@ -243,7 +243,7 @@ function message(command_stack_1, command) -- TODO: Better name
   return command
 end
 
-function jump(command_stack_1, command)
+function update_jump(command_stack_1, command)
   current_option = 1
 
   repopulate_with(command_stack, scenes[command.go_to])
@@ -252,25 +252,25 @@ function jump(command_stack_1, command)
   return last(command_stack)
 end
 
-command_lambdas = {
-  game_over=game_over,
-  save_point=save_point,
-  choice=choice,
-  stage_direction=stage_direction,
-  assignment=assignment,
-  increment=increment,
-  decrement=decrement,
-  if_cond=if_cond,
-  narration=message,
-  speech=message,
-  jump=jump
+command_update_lambdas = {
+  game_over=update_game_over,
+  save_point=update_save_point,
+  choice=update_choice,
+  stage_direction=update_stage_direction,
+  assignment=update_assignment,
+  increment=update_increment,
+  decrement=update_decrement,
+  if_cond=update_if_cond,
+  narration=update_message,
+  speech=update_message,
+  jump=update_jump
 }
 
 function run_command(command)
-  if (command_lambdas[command.type]) then
-    return command_lambdas[command.type](command_stack, command)
+  if (command_update_lambdas[command.type]) then
+    return command_update_lambdas[command.type](command_stack, command)
   elseif (command.type == "if") then -- because "if" is not a valid table key
-    return command_lambdas["if_cond"](command_stack, command)
+    return command_update_lambdas["if_cond"](command_stack, command)
   else
     printh("unrecognized command type: "..command.type)
   end
@@ -287,7 +287,7 @@ end
 function _update()
   current_command = run_command(current_command)
   if (current_command == nil) then
-    current_command =  game_over(command_stack, current_command)
+    current_command =  update_game_over(command_stack, current_command)
     return
   end
 
