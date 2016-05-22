@@ -74,9 +74,8 @@ function _init()
     load_save_file()
   end
 
-  command_stack = {}
-  repopulate_with(command_stack, current_scene)
-  current_command = last(command_stack)
+  current_command_stack = {}
+  repopulate_with(current_command_stack, current_scene)
 end
 
 function load_save_file()
@@ -133,11 +132,11 @@ function last(stack)
   return stack[#(stack)]
 end
 
-function update_game_over(command_stack_1, command)
-  return {type="game_over"}
+function update_game_over(command_stack, command)
+  return {{},{type="game_over"}}
 end
 
-function update_save_point(command_stack_1, comand)
+function update_save_point(command_stack, command)
   dset(0, current_scene_id)
   for id,variable in pairs(variable_declarations) do
     dset(id, variables[variable])
@@ -145,10 +144,10 @@ function update_save_point(command_stack_1, comand)
   printh("Progress saved.")
 
   shift(command_stack)
-  return last(command_stack)
+  return command_stack
 end
 
-function update_choice(command_stack_1, command)
+function update_choice(command_stack, command)
   if (btnp(key.up)) current_option -= 1
   if (btnp(key.down)) current_option += 1
 
@@ -164,13 +163,13 @@ function update_choice(command_stack_1, command)
     current_option = 1
     shift(command_stack)
     unshift_all(command_stack, scenes[go_to])
-    return last(command_stack)
+    return command_stack
   end
 
-  return command
+  return command_stack
 end
 
-function update_stage_direction(command_stack_1, command)
+function update_stage_direction(command_stack, command)
   if (command.instructions == "show") then
     current_avatar = avatars[command.actor]
   end
@@ -179,31 +178,31 @@ function update_stage_direction(command_stack_1, command)
   end
   -- assumption: all stage directions should immediately be followed by the next command
   shift(command_stack)
-  return last(command_stack)
+  return command_stack
 end
 
-function update_assignment(command_stack_1, command)
+function update_assignment(command_stack, command)
   variables[command.variable] = command.value
 
   shift(command_stack)
-  return run_command(last(command_stack))
+  return run_command(command_stack)
 end
 
-function update_increment(command_stack_1, command)
+function update_increment(command_stack, command)
   variables[command.variable] += 1
 
   shift(command_stack)
-  return run_command(last(command_stack))
+  return run_command(command_stack)
 end
 
-function update_decrement(command_stack_1, command)
+function update_decrement(command_stack, command)
   variables[command.variable] -= 1
 
   shift(command_stack)
-  return run_command(last(command_stack))
+  return run_command(command_stack)
 end
 
-function update_if_cond(command_stack_1, command)
+function update_if_cond(command_stack, command)
   local op = command.operand
   local left = variables[command.variable]
   local right = command.value
@@ -230,26 +229,26 @@ function update_if_cond(command_stack_1, command)
     unshift_all(command_stack, command.commands)
   end
 
-  return run_command(last(command_stack))
+  return run_command(command_stack)
 end
 
-function update_message(command_stack_1, command) -- TODO: Better name
+function update_message(command_stack, command) -- TODO: Better name
   if (btnp(key.a)) then
     current_option = 1
     shift(command_stack)
-    return last(command_stack)
+    return command_stack
   end
 
-  return command
+  return command_stack
 end
 
-function update_jump(command_stack_1, command)
+function update_jump(command_stack, command)
   current_option = 1
 
   repopulate_with(command_stack, scenes[command.go_to])
   copy_to(variables, variables_before_jump)
   current_scene_id = scene_ids[command.go_to]
-  return last(command_stack)
+  return command_stack
 end
 
 function draw_message_setup(command)
@@ -312,11 +311,13 @@ command_draw_lambdas = {
   game_over=draw_game_over
 }
 
-function run_command(command)
+function run_command(command_stack)
+  local command = last(command_stack)
+
   if (command_update_lambdas[command.type]) then
-    return command_update_lambdas[command.type](command_stack, command)
+    return command_update_lambdas[command.type](current_command_stack, command)
   elseif (command.type == "if") then -- because "if" is not a valid table key
-    return command_update_lambdas["if_cond"](command_stack, command)
+    return command_update_lambdas["if_cond"](current_command_stack, command)
   else
     printh("unrecognized command type: "..command.type)
   end
@@ -331,9 +332,10 @@ function hands_update(hands)
 end
 
 function _update()
-  current_command = run_command(current_command)
-  if (current_command == nil) then
-    current_command =  update_game_over(command_stack, current_command)
+  current_command_stack = run_command(current_command_stack)
+
+  if (last(current_command_stack) == nil) then
+    current_command_stack = update_game_over(current_command_stack, nil)
     return
   end
 
@@ -341,8 +343,9 @@ function _update()
 end
 
 function draw_script(script)
-  if(command_draw_lambdas[current_command.type]) then
-    command_draw_lambdas[current_command.type](current_command)
+  local command = last(current_command_stack)
+  if(command_draw_lambdas[command.type]) then
+    command_draw_lambdas[command.type](command)
     return
   end
 end
