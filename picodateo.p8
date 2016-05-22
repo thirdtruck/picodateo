@@ -56,7 +56,6 @@ function _init()
     scene_id = nil,
     option_id = 1
   }
-  current_scene = scenes.init
   current_avatar = nil
   current_hands = {
     left = {
@@ -77,7 +76,8 @@ function _init()
   end
 
   current_command_stack = {}
-  repopulate_with(current_command_stack, current_scene)
+  local starting_scene = scenes[scene_names[current_game.scene_id]]
+  repopulate_with(current_command_stack, starting_scene)
 end
 
 function load_save_file(game)
@@ -86,12 +86,11 @@ function load_save_file(game)
   printh("scene id "..game.scene_id)
 
   if (game.scene_id == 0) then -- empty save file; scene IDs start at 1
+    game.scene_id = scene_ids["init"]
     return game
   end
 
   printh("scene name "..scene_names[game.scene_id])
-
-  current_scene = scenes[scene_names[game.scene_id]]
 
   for id,variable in pairs(variable_declarations) do
     saved_value = dget(id)
