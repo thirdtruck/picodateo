@@ -143,7 +143,7 @@ end
 function update_save_point(game, command_stack, command)
   dset(0, current_scene_id)
   for id,variable in pairs(variable_declarations) do
-    dset(id, game.variables[variable])
+    dset(id, game.variables_before_jump[variable])
   end
   printh("Progress saved.")
 
