@@ -72,7 +72,7 @@ function _init()
 
   data_loaded = cartdata("picodateo_1")
   if(data_loaded) then
-    current_game = load_save_file(current_game)
+    load_save_file(current_game)
   else
     current_game.scene_id = scene_ids["init"]
   end
@@ -90,7 +90,7 @@ function load_save_file(game)
 
   if (game.scene_id == 0) then -- empty save file; scene IDs start at 1
     game.scene_id = scene_ids["init"]
-    return game
+    return
   end
 
   printh("scene name "..scene_names[game.scene_id])
@@ -101,8 +101,6 @@ function load_save_file(game)
     game.variables_before_jump[variable] = saved_value
     printh("var "..variable.."="..(game.variables[variable] or "nil"))
   end
-
-  return game
 end
 
 -- Caution: Assumes each item in the stack is unique!
