@@ -1,12 +1,14 @@
 grammar PicoDateo
   rule game
-    (scene*) {
-      Game.new(matches.map { |m| [m.value.name, m.value] }.to_h)
+    (variables_table scenes:(scene*)) {
+      scenes = capture(:scenes).matches.map { |m| [m.value.name, m.value] }.to_h
+      variables_table = capture(:variables_table).value
+      Game.new(scenes, variables_table)
     }
   end
 
   rule commands
-    (speech | speech newline | if_cond | jump | stage_direction | choice | set | increment | decrement)+
+    (speech | speech newline | if_cond | jump | stage_direction | choice | set | increment | decrement | save_point)+
   end
 
   rule scene
@@ -105,6 +107,25 @@ grammar PicoDateo
   rule jump
     (space 'jump(' scene_name ')' space newline) {
       SceneJump.new(capture(:scene_name))
+    }
+  end
+
+  rule save_point
+    (space 'save_point()' space newline) {
+      SavePoint.new()
+    }
+  end
+
+  rule variables_table
+    ('variables:' newline variable_declarations:(variable_declaration+) space 'end' newline) {
+      variable_declarations = capture(:variable_declarations).matches.map { |m| m.value }
+      VariablesTable.new(variable_declarations)
+    }
+  end
+
+  rule variable_declaration
+    (space id:([1-9][0-9]*) ':' space variable_name space newline) {
+      VariableDeclaration.new(capture(:id).value.to_i, capture(:variable_name))
     }
   end
 

@@ -1,3 +1,9 @@
+variables:
+  1: c1
+  2: c2
+  3: c3
+end
+
 scene(init):
   set(c1=0)
   set(c2=0)
@@ -29,6 +35,7 @@ end
 scene(goodbye):
   dec(c3)
   [robo] it was nice seeing you
+  save_point()
   if(c1=1)
     [robo] come back again soon
   end

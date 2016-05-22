@@ -44,10 +44,15 @@ avatars = {
   }
 }
 
-scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",variable="c1",operand="=",value=1,commands={{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
+variable_declarations={"c1","c2","c3",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
+scene_ids={init=1,first_choice=2,second_choice=3,goodbye=4}
+scene_names={"init","first_choice","second_choice","goodbye",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
+scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="save_point"},{type="if",variable="c1",operand="=",value=1,commands={{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
 
 function _init()
   variables = {}
+  variables_before_jump = {}
+  current_scene_id = nil
   current_option = 1
   current_scene = scenes.init
   current_avatar = nil
@@ -64,6 +69,11 @@ function _init()
     speed = 50
   }
 
+  data_loaded = cartdata("picodateo_1")
+  if(data_loaded) then
+    load_save_file()
+  end
+
   command_stack = {}
   repopulate_with(command_stack, current_scene)
   current_command = last(command_stack)
@@ -73,6 +83,25 @@ function script_update()
   current_command = run_command(current_command)
   if (current_command == nil) then
     game_over()
+  end
+end
+
+function load_save_file()
+  current_scene_id = dget(0)
+  printh("scene id "..current_scene_id)
+  printh("scene name "..scene_names[current_scene_id])
+
+  if (current_scene_id == 0) then -- empty save file; scene IDs start at 1
+    return
+  end
+
+  current_scene = scenes[scene_names[current_scene_id]]
+
+  for id,variable in pairs(variable_declarations) do
+    saved_value = dget(id)
+    variables[variable] = saved_value
+    variables_before_jump[variable] = saved_value
+    printh("var "..variable.."="..(variables[variable] or "nil"))
   end
 end
 
@@ -100,6 +129,13 @@ function repopulate_with(old_stack, new_stack)
     del(old_stack, old_stack[1])
   end
   unshift_all(old_stack, new_stack)
+end
+
+function copy_to(source_table, dest_table)
+  dest_table = {}
+  for k,v in pairs(source_table) do
+    dest_table[k] = v
+  end
 end
 
 function last(stack)
@@ -131,6 +167,8 @@ function run_command(command)
     current_option = 1
 
     repopulate_with(command_stack, scenes[command.go_to])
+    copy_to(variables, variables_before_jump)
+    current_scene_id = scene_ids[command.go_to]
     return last(command_stack)
   elseif (command.type == "stage_direction") then
     if (command.instructions == "show") then
@@ -193,6 +231,15 @@ function run_command(command)
     end
 
     return command
+  elseif (command.type == "save_point") then
+    dset(0, current_scene_id)
+    for id,variable in pairs(variable_declarations) do
+      dset(id, variables[variable])
+    end
+    printh("Progress saved.")
+
+    shift(command_stack)
+    return last(command_stack)
   elseif (command.type == "game_over") then
     return command
   else
