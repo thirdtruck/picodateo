@@ -52,9 +52,9 @@ scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",varia
 function _init()
   current_game = {
     variables = {},
-    variables_before_jump = {}
+    variables_before_jump = {},
+    scene_id = nil
   }
-  current_scene_id = nil
   current_option = 1
   current_scene = scenes.init
   current_avatar = nil
@@ -81,17 +81,17 @@ function _init()
 end
 
 function load_save_file(game)
-  current_scene_id = dget(0)
+  game.scene_id = dget(0)
 
-  printh("scene id "..current_scene_id)
+  printh("scene id "..game.scene_id)
 
-  if (current_scene_id == 0) then -- empty save file; scene IDs start at 1
+  if (game.scene_id == 0) then -- empty save file; scene IDs start at 1
     return
   end
 
-  printh("scene name "..scene_names[current_scene_id])
+  printh("scene name "..scene_names[game.scene_id])
 
-  current_scene = scenes[scene_names[current_scene_id]]
+  current_scene = scenes[scene_names[game.scene_id]]
 
   for id,variable in pairs(variable_declarations) do
     saved_value = dget(id)
@@ -141,7 +141,7 @@ function update_game_over(game, command_stack, command)
 end
 
 function update_save_point(game, command_stack, command)
-  dset(0, current_scene_id)
+  dset(0, game.scene_id)
   for id,variable in pairs(variable_declarations) do
     dset(id, game.variables_before_jump[variable])
   end
@@ -251,7 +251,7 @@ function update_jump(game, command_stack, command)
 
   repopulate_with(command_stack, scenes[command.go_to])
   copy_to(game.variables, game.variables_before_jump)
-  current_scene_id = scene_ids[command.go_to]
+  game.scene_id = scene_ids[command.go_to]
   return command_stack
 end
 
