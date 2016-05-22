@@ -103,6 +103,13 @@ function load_save_file(game)
   end
 end
 
+function save_game(game)
+  dset(0, game.scene_id)
+  for id,variable in pairs(variable_declarations) do
+    dset(id, game.variables_before_jump[variable])
+  end
+end
+
 -- Caution: Assumes each item in the stack is unique!
 function shift(stack)
   del(stack, last(stack))
@@ -141,10 +148,8 @@ function update_game_over(game, command)
 end
 
 function update_save_point(game, command)
-  dset(0, game.scene_id)
-  for id,variable in pairs(variable_declarations) do
-    dset(id, game.variables_before_jump[variable])
-  end
+  save_game(game)
+
   printh("Progress saved.")
 
   shift(game.command_stack)
