@@ -50,14 +50,7 @@ scene_names={"init","first_choice","second_choice","goodbye",nil,nil,nil,nil,nil
 scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="save_point"},{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",variable="c1",operand="=",value=1,commands={{type="speech",speaker="robo",text="first choice? good choice"},{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="speech",speaker="robo",text="second choice? good choice"},{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
 
 function _init()
-  current_game = {
-    variables = {},
-    variables_before_jump = {},
-    scene_id = nil,
-    option_id = 1,
-    avatar_name = nil
-  }
-  current_hands = {
+  local starting_hands = {
     left = {
       x = 16, y = 24,
       offset = { x = 0, y = 0 }
@@ -68,6 +61,15 @@ function _init()
     },
     animation_index = 0,
     speed = 50
+  }
+
+  current_game = {
+    variables = {},
+    variables_before_jump = {},
+    scene_id = nil,
+    option_id = 1,
+    avatar_name = nil,
+    hands = starting_hands
   }
 
   data_loaded = cartdata("picodateo_1")
@@ -342,7 +344,7 @@ function _update()
     return
   end
 
-  hands_update(current_hands)
+  hands_update(current_game.hands)
 end
 
 function draw_avatar(avatar)
@@ -373,7 +375,7 @@ function _draw()
     local avatar = avatars[current_game.avatar_name]
     draw_avatar(avatar)
 
-    draw_hands(current_hands, avatar)
+    draw_hands(current_game.hands, avatar)
   end
 end
 __gfx__
