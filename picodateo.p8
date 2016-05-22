@@ -40,6 +40,11 @@ avatars = {
   }
 }
 
+save_data_structure = {
+  scene_id = 0,
+  variable_offset = 0
+}
+
 variable_declarations={"c1","c2","c3",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
 scene_ids={init=1,first_choice=2,second_choice=3,goodbye=4}
 scene_names={"init","first_choice","second_choice","goodbye",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
@@ -84,29 +89,38 @@ function _init()
 end
 
 function load_save_file(game)
-  game.scene_id = dget(0)
+  game.scene_id = dget(save_data_structure.scene_id)
 
-  printh("scene id "..game.scene_id)
+  printh("loading scene id "..game.scene_id)
 
   if (game.scene_id == 0) then -- empty save file; scene IDs start at 1
     game.scene_id = scene_ids["init"]
     return
   end
 
-  printh("scene name "..scene_names[game.scene_id])
+  printh("loaded scene name: "..scene_names[game.scene_id])
 
   for id,variable in pairs(variable_declarations) do
-    saved_value = dget(id)
+    local position = id+save_data_structure.variable_offset
+    local saved_value = dget(position)
     game.variables[variable] = saved_value
     game.variables_before_jump[variable] = saved_value
-    printh("var "..variable.."="..(game.variables[variable] or "nil"))
+    printh("loaded var "..variable.."="..(game.variables[variable] or "nil").." from "..position)
   end
 end
 
 function save_game(game)
-  dset(0, game.scene_id)
+  dset(save_data_structure.scene_id, game.scene_id)
+  printh('saved scene id '..game.scene_id.. ' to '..save_data_structure.scene_id)
+
   for id,variable in pairs(variable_declarations) do
-    dset(id, game.variables_before_jump[variable])
+    local position = id+save_data_structure.variable_offset
+    local value = game.variables_before_jump[variable]
+    if (not value) then
+      value = 0
+    end
+    dset(position, value)
+    printh('saved var '..variable..'='..value..' to '..position)
   end
 end
 
@@ -132,11 +146,12 @@ function repopulate_with(old_stack, new_stack)
   unshift_all(old_stack, new_stack)
 end
 
-function copy_to(source_table, dest_table)
+function copy_of(source_table)
   dest_table = {}
   for k,v in pairs(source_table) do
     dest_table[k] = v
   end
+  return dest_table
 end
 
 function last(stack)
@@ -247,7 +262,7 @@ function update_jump(game, command)
   game.option_id = 1
 
   repopulate_with(game.command_stack, scenes[command.go_to])
-  copy_to(game.variables, game.variables_before_jump)
+  game.variables_before_jump = copy_of(game.variables)
   game.scene_id = scene_ids[command.go_to]
 end
 
