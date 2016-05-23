@@ -37,6 +37,7 @@ scene(goodbye):
   dec(c3)
   [robo] it was nice seeing you
   if(c1=1)
+    [robo:eye_roll]
     [robo] first choice? good choice
     [robo] come back again soon
   end
