@@ -306,6 +306,14 @@ function update_jump(game, command)
   game.scene_id = scene_ids[command.go_to]
 end
 
+function eyes_update(eyes)
+  eyes.animation_index += 1
+  if(eyes.animation_index > eyes.speed) eyes.animation_index = 0
+
+  eyes.left.offset.x = flr(sin(eyes.animation_index/eyes.speed))
+  eyes.right.offset.x = flr(sin((eyes.animation_index/eyes.speed)))
+end
+
 function hands_update(hands)
   hands.animation_index += 1
   if(hands.animation_index > hands.speed) hands.animation_index = 0
@@ -425,6 +433,7 @@ function _update()
   if (current_game.started) then
     run_command(current_game)
 
+    eyes_update(current_game.eyes)
     hands_update(current_game.hands)
   end
 end
