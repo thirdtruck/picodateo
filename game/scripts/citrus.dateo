@@ -42,6 +42,7 @@ scene(goodbye):
     [robo] come back again soon
   end
   if(c2=1)
+    [robo:eyes_downcast]
     [robo] second choice? good choice
     [robo] you're always welcome
   end
