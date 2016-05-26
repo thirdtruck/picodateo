@@ -53,13 +53,17 @@ avatars = {
 save_data_structure = {
   scene_id = 0,
   avatar_id = 1,
-  variable_offset = 1
+  eye_state_id = 2,
+  variable_offset = 2
 }
+
+eye_state_names={"default","rolled","downcast"}
+eye_state_ids={default=1,rolled=2,downcast=3}
 
 variable_declarations={"c1","c2","c3",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
 scene_ids={init=1,first_choice=2,second_choice=3,goodbye=4}
 scene_names={"init","first_choice","second_choice","goodbye",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
-scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="save_point"},{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",variable="c1",operand="=",value=1,commands={{type="stage_direction",actor="robo",instructions="eye_roll"},{type="speech",speaker="robo",text="first choice? good choice"},{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="stage_direction",actor="robo",instructions="eyes_downcast"},{type="speech",speaker="robo",text="second choice? good choice"},{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
+scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="stage_direction",actor="robo",instructions="eyes_downcast"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="save_point"},{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",variable="c1",operand="=",value=1,commands={{type="stage_direction",actor="robo",instructions="eye_roll"},{type="speech",speaker="robo",text="first choice? good choice"},{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="speech",speaker="robo",text="second choice? good choice"},{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
 
 function _init()
   local starting_hands = {
@@ -129,12 +133,23 @@ function load_save_file(game)
 
   printh("loaded avatar id "..avatar_id)
 
+  local eye_state_id = dget(save_data_structure.eye_state_id)
+
+  printh("loaded eye state id "..eye_state_id)
+
+  if(eye_state_id == 0) then -- new save file
+    game.eyes.state = "default"
+  else
+    game.eyes.state = eye_state_names[eye_state_id]
+  end
+  printh("loaded eye state name: "..game.eyes.state)
+
   if(avatar_id == 0) then -- narrator; avatar ids start at 1
     game.avatar_name = nil
-    printh("loaded avatar name: "..game.avatar_name)
   else
     game.avatar_name = avatar_names[avatar_id]
   end
+  printh("loaded avatar name: "..game.avatar_name)
 
   for id,variable in pairs(variable_declarations) do
     local position = id+save_data_structure.variable_offset
@@ -153,6 +168,9 @@ function save_game(game)
 
   dset(save_data_structure.avatar_id, avatar_ids[game.avatar_name])
   printh("saved avatar id "..avatar_id.. " to "..save_data_structure.avatar_id)
+
+  dset(save_data_structure.eye_state_id, eye_state_ids[game.eyes.state])
+  printh("saved eye state id "..eye_state_ids[game.eyes.state].. " to "..save_data_structure.eye_state_id)
 
   for id,variable in pairs(variable_declarations) do
     local position = id+save_data_structure.variable_offset

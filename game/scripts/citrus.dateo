@@ -11,6 +11,7 @@ scene(init):
   [] welcome to the game
   [robo:show]
   [robo] i hope you enjoy your stay
+  [robo:eyes_downcast]
   choice:
     option(first_choice): first choice
     end
@@ -42,7 +43,6 @@ scene(goodbye):
     [robo] come back again soon
   end
   if(c2=1)
-    [robo:eyes_downcast]
     [robo] second choice? good choice
     [robo] you're always welcome
   end
