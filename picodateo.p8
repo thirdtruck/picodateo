@@ -38,6 +38,14 @@ avatars = {
       },
       width = 1,
       height = 1
+    },
+    eye = {
+      cell = {
+        x = 2,
+        y = 1
+      },
+      width = 1,
+      height = 1
     }
   }
 }
@@ -45,13 +53,17 @@ avatars = {
 save_data_structure = {
   scene_id = 0,
   avatar_id = 1,
-  variable_offset = 1
+  eye_state_id = 2,
+  variable_offset = 2
 }
+
+eye_state_names={"default","rolled","downcast"}
+eye_state_ids={default=1,rolled=2,downcast=3}
 
 variable_declarations={"c1","c2","c3",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
 scene_ids={init=1,first_choice=2,second_choice=3,goodbye=4}
 scene_names={"init","first_choice","second_choice","goodbye",nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil,nil}
-scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="save_point"},{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",variable="c1",operand="=",value=1,commands={{type="speech",speaker="robo",text="first choice? good choice"},{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="speech",speaker="robo",text="second choice? good choice"},{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
+scenes={init={{type="assignment",variable="c1",value=0},{type="assignment",variable="c2",value=0},{type="assignment",variable="c3",value=10},{type="narration",text="welcome to the game"},{type="stage_direction",actor="robo",instructions="show"},{type="speech",speaker="robo",text="i hope you enjoy your stay"},{type="stage_direction",actor="robo",instructions="eyes_downcast"},{type="choice",options={{text="first choice",go_to="first_choice"},{text="second choice",go_to="second_choice"}}},{type="jump",go_to="goodbye"}},first_choice={{type="increment",variable="c1"},{type="speech",speaker="robo",text="you made the first choice"},{type="jump",go_to="goodbye"}},second_choice={{type="increment",variable="c2"},{type="speech",speaker="robo",text="you made the second choice"},{type="jump",go_to="goodbye"}},goodbye={{type="save_point"},{type="decrement",variable="c3"},{type="speech",speaker="robo",text="it was nice seeing you"},{type="if",variable="c1",operand="=",value=1,commands={{type="stage_direction",actor="robo",instructions="eye_roll"},{type="speech",speaker="robo",text="first choice? good choice"},{type="speech",speaker="robo",text="come back again soon"}}},{type="if",variable="c2",operand="=",value=1,commands={{type="speech",speaker="robo",text="second choice? good choice"},{type="speech",speaker="robo",text="you're always welcome"}}},{type="stage_direction",actor="robo",instructions="hide"},{type="narration",text="goodbye"}}}
 
 function _init()
   local starting_hands = {
@@ -66,6 +78,19 @@ function _init()
     animation_index = 0,
     speed = 50
   }
+  local starting_eyes = {
+    left = {
+      x = 25, y = 22,
+      offset = { x = 0, y = 0 }
+    },
+    right = {
+      x = 29, y = 22,
+      offset = { x = 0, y = 0 }
+    },
+    state = "default",
+    animation_index = 0,
+    speed = 50
+  }
 
   current_game = {
     started = false,
@@ -75,6 +100,7 @@ function _init()
     option_id = 1,
     avatar_name = nil,
     hands = starting_hands,
+    eyes = starting_eyes,
     command_stack = {}
   }
 
@@ -107,12 +133,23 @@ function load_save_file(game)
 
   printh("loaded avatar id "..avatar_id)
 
+  local eye_state_id = dget(save_data_structure.eye_state_id)
+
+  printh("loaded eye state id "..eye_state_id)
+
+  if(eye_state_id == 0) then -- new save file
+    game.eyes.state = "default"
+  else
+    game.eyes.state = eye_state_names[eye_state_id]
+  end
+  printh("loaded eye state name: "..game.eyes.state)
+
   if(avatar_id == 0) then -- narrator; avatar ids start at 1
     game.avatar_name = nil
-    printh("loaded avatar name: "..game.avatar_name)
   else
     game.avatar_name = avatar_names[avatar_id]
   end
+  printh("loaded avatar name: "..game.avatar_name)
 
   for id,variable in pairs(variable_declarations) do
     local position = id+save_data_structure.variable_offset
@@ -131,6 +168,9 @@ function save_game(game)
 
   dset(save_data_structure.avatar_id, avatar_ids[game.avatar_name])
   printh("saved avatar id "..avatar_id.. " to "..save_data_structure.avatar_id)
+
+  dset(save_data_structure.eye_state_id, eye_state_ids[game.eyes.state])
+  printh("saved eye state id "..eye_state_ids[game.eyes.state].. " to "..save_data_structure.eye_state_id)
 
   for id,variable in pairs(variable_declarations) do
     local position = id+save_data_structure.variable_offset
@@ -215,6 +255,15 @@ function update_stage_direction(game, command)
   if (command.instructions == "hide") then
     game.avatar_name = nil
   end
+  if (command.instructions == "eye_default") then
+    game.eyes.state = "default"
+  end
+  if (command.instructions == "eye_roll") then
+    game.eyes.state = "rolled"
+  end
+  if (command.instructions == "eyes_downcast") then
+    game.eyes.state = "downcast"
+  end
   -- assumption: all stage directions should immediately be followed by the next command
   shift(game.command_stack)
 end
@@ -285,6 +334,26 @@ function update_jump(game, command)
   game.scene_id = scene_ids[command.go_to]
 end
 
+function eyes_update(eyes)
+  eyes.animation_index += 1
+  if(eyes.animation_index > eyes.speed) eyes.animation_index = 0
+
+  if (eyes.state == "default") then
+    eyes.left.offset.x = flr(sin(eyes.animation_index/eyes.speed))
+    eyes.right.offset.x = flr(sin((eyes.animation_index/eyes.speed)))
+  elseif (eyes.state == "rolled") then
+    eyes.left.offset.x = -1
+    eyes.left.offset.y = -1
+    eyes.right.offset.x = -1
+    eyes.right.offset.y = -1
+  elseif (eyes.state == "downcast") then
+    eyes.left.offset.x = 0
+    eyes.left.offset.y = 0
+    eyes.right.offset.x = 0
+    eyes.right.offset.y = 0
+  end
+end
+
 function hands_update(hands)
   hands.animation_index += 1
   if(hands.animation_index > hands.speed) hands.animation_index = 0
@@ -336,11 +405,23 @@ function draw_avatar(avatar)
   map(avatar.cel.x, avatar.cel.y, 20, 20, avatar.width, avatar.height)
 end
 
+function draw_eye(eye, avatar)
+  map(avatar.eye.cell.x, avatar.eye.cell.y,
+      eye.x + eye.offset.x,
+      eye.y + eye.offset.y,
+      avatar.eye.width, avatar.hand.height)
+end
+
 function draw_hand(hand, avatar)
   map(avatar.hand.cel.x, avatar.hand.cel.y,
       hand.x + hand.offset.x,
       hand.y + hand.offset.y,
       avatar.hand.width, avatar.hand.height)
+end
+
+function draw_eyes(eyes, avatar)
+  draw_eye(eyes.left, avatar)
+  draw_eye(eyes.right, avatar)
 end
 
 function draw_hands(hands, avatar)
@@ -392,6 +473,7 @@ function _update()
   if (current_game.started) then
     run_command(current_game)
 
+    eyes_update(current_game.eyes)
     hands_update(current_game.hands)
   end
 end
@@ -407,17 +489,20 @@ function _draw()
 
   if current_game.avatar_name then
     local avatar = avatars[current_game.avatar_name]
+
+    draw_eyes(current_game.eyes, avatar)
+
     draw_avatar(avatar)
 
     draw_hands(current_game.hands, avatar)
   end
 end
 __gfx__
-000000000000700000070000ccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+0000000000007000000700006cc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000007777777777000c1c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 000000000007700770077000ccc00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000070077007000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000000007777770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000000077777777000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000007777770000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000077666677000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000077666677000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
@@ -546,7 +631,7 @@ __gff__
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 __map__
 0102100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-1112000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+1112030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
