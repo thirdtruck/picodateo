@@ -12,7 +12,7 @@ grammar PicoDateo
   end
 
   rule scene
-    ('scene(' scene_name:(chars) '):' newline commands space 'end' newline) {
+    ('label ' scene_name:(chars) ':' newline commands space 'end' newline) {
       scene_name = capture(:scene_name).value.to_sym
       c = capture(:commands).matches.map { |m| m.value }
       Scene.new(scene_name, c)

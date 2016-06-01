@@ -4,7 +4,7 @@ variables:
   3: c3
 end
 
-scene(init):
+label init:
   set(c1=0)
   set(c2=0)
   set(c3=10)
@@ -21,19 +21,19 @@ scene(init):
   jump(goodbye)
 end
 
-scene(first_choice):
+label first_choice:
   inc(c1)
   [robo] you made the first choice
   jump(goodbye)
 end
 
-scene(second_choice):
+label second_choice:
   inc(c2)
   [robo] you made the second choice
   jump(goodbye)
 end
 
-scene(goodbye):
+label goodbye:
   save_point()
   dec(c3)
   [robo] it was nice seeing you
