@@ -18,19 +18,19 @@ label init:
     option(second_choice): second choice
     end
   end
-  jump(goodbye)
+  jump goodbye
 end
 
 label first_choice:
   inc(c1)
   [robo] you made the first choice
-  jump(goodbye)
+  jump goodbye
 end
 
 label second_choice:
   inc(c2)
   [robo] you made the second choice
-  jump(goodbye)
+  jump goodbye
 end
 
 label goodbye:

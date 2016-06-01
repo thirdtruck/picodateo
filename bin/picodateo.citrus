@@ -105,7 +105,7 @@ grammar PicoDateo
   end
 
   rule jump
-    (space 'jump(' scene_name ')' space newline) {
+    (space 'jump ' scene_name space newline) {
       SceneJump.new(capture(:scene_name))
     }
   end
