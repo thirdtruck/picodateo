@@ -37,12 +37,12 @@ label goodbye:
   save_point()
   dec(c3)
   [robo] it was nice seeing you
-  if(c1=1)
+  if c1 == 1:
     [robo:eye_roll]
     [robo] first choice? good choice
     [robo] come back again soon
   end
-  if(c2=1)
+  if c2 == 1:
     [robo] second choice? good choice
     [robo] you're always welcome
   end
