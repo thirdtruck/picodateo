@@ -76,7 +76,7 @@ grammar PicoDateo
   end
 
   rule set
-    (space 'set(' variable_name '=' new_value:([0-9]+) ')' space newline) {
+    (space '$ ' variable_name space '=' space new_value:([0-9]+) space newline) {
       Assignment.new(capture(:variable_name), capture(:new_value).value.to_i)
     }
   end
