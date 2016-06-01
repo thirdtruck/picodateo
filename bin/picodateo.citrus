@@ -82,14 +82,14 @@ grammar PicoDateo
   end
 
   rule increment
-    (space 'inc(' variable_name ')' space newline) {
-      Increment.new(capture(:variable_name))
+    (space '$ ' variable_name space '+=' space new_value:([0-9]+) space newline) {
+      Increment.new(capture(:variable_name), capture(:new_value))
     }
   end
 
   rule decrement
-    (space 'dec(' variable_name ')' space newline) {
-      Decrement.new(capture(:variable_name))
+    (space '$ ' variable_name space '-=' space new_value:([0-9]+) space newline) {
+      Decrement.new(capture(:variable_name), capture(:new_value))
     }
   end
 

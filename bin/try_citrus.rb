@@ -64,15 +64,15 @@ Assignment = Struct.new(:variable, :value) do
   end
 end
 
-Increment = Struct.new(:variable, :value) do
+Increment = Struct.new(:variable, :amount) do
   def to_s
-    %Q(type="increment",variable="#{variable}")
+    %Q(type="increment",variable="#{variable}",amount=#{amount})
   end
 end
 
-Decrement = Struct.new(:variable, :value) do
+Decrement = Struct.new(:variable, :amount) do
   def to_s
-    %Q(type="decrement",variable="#{variable}")
+    %Q(type="decrement",variable="#{variable}",amount=#{amount})
   end
 end
 

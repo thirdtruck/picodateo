@@ -22,20 +22,20 @@ label init:
 end
 
 label first_choice:
-  inc(c1)
+  $ c1 += 1
   [robo] you made the first choice
   jump goodbye
 end
 
 label second_choice:
-  inc(c2)
+  $ c2 += 1
   [robo] you made the second choice
   jump goodbye
 end
 
 label goodbye:
   save_point()
-  dec(c3)
+  $ c3 -= 1
   [robo] it was nice seeing you
   if c1 == 1:
     [robo:eye_roll]
