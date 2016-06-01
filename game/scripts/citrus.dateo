@@ -9,9 +9,9 @@ label init:
   $ c2 = 0
   $ c3 = 10
   [] welcome to the game
-  [robo:show]
+  show robo
   [robo] i hope you enjoy your stay
-  [robo:eyes_downcast]
+  show robo eyes_downcast
   choice:
     option(first_choice): first choice
     end
@@ -38,7 +38,7 @@ label goodbye:
   $ c3 -= 1
   [robo] it was nice seeing you
   if c1 == 1:
-    [robo:eye_roll]
+    show robo eye_roll
     [robo] first choice? good choice
     [robo] come back again soon
   end
@@ -46,6 +46,6 @@ label goodbye:
     [robo] second choice? good choice
     [robo] you're always welcome
   end
-  [robo:hide]
+  hide robo
   [] goodbye
 end

@@ -48,9 +48,33 @@ grammar PicoDateo
     }
   end
 
+  rule pose
+    (name:(chars+)) {
+      capture(:name)
+    }
+  end
+
   rule stage_direction
-    (space '[' actor_name ':' instructions ']' space newline) {
-      StageDirection.new(capture(:actor_name), capture(:instructions))
+    (space sd:(show | show_specific | hide)) {
+      capture(:sd).value
+    }
+  end
+
+  rule show
+    ('show' space actor_name space newline) {
+      StageDirection.new(capture(:actor_name), 'show')
+    }
+  end
+
+  rule show_specific
+    ('show' space actor_name space pose newline) {
+      StageDirection.new(capture(:actor_name), capture(:pose))
+    }
+  end
+
+  rule hide
+    ('hide' space actor_name newline) {
+      StageDirection.new(capture(:actor_name), 'hide')
     }
   end
 
